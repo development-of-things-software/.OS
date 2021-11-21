@@ -7,6 +7,7 @@ term.setCursorBlink(true)
 
 local function tprintf(fmt, ...)
   local ftext = string.format(fmt, ...)
+  term.setCursorPos(1, y)
   for text in ftext:gmatch("[^\n]+") do
     while #text > 0 do
       local ln = text:sub(1, w)

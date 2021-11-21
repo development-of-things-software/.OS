@@ -38,12 +38,14 @@ term.setBackgroundColor(256)
 term.setTextColor(0x8000)
 term.clear()
 term.setCursorPos(1, 1)
-term.write(".OS is starting...")
+term.write("running from /" .. osPath)
 term.setCursorPos(1, 2)
-term.write(".OS running from " .. osPath)
+term.write(".OS is starting...")
 
 -- OS API table
-_G.dotOS = {}
+_G.dotos = {
+  path = "/"..osPath,
+}
 
 -- argument checking
 function checkArg(n, have, ...)
@@ -62,10 +64,10 @@ function checkArg(n, have, ...)
 end
 
 -- if we're running in Lua 5.1, replace load() and remove its legacy things
--- (or, rather, place them in dotOS.lua51 (for now), where programs that really
+-- (or, rather, place them in dotos.lua51 (for now), where programs that really
 -- need them can access them later).
 if _VERSION == "Lua 5.1" then
-  dotOS.lua51 = {
+  dotos.lua51 = {
     load = load,
     loadstring = loadstring,
     setfenv = setfenv,
@@ -75,15 +77,16 @@ if _VERSION == "Lua 5.1" then
     maxn = table.maxn
   }
 
-  -- we lock dotOS.lua51 behind a permissions wall later, so set it as an
+  -- we lock dotos.lua51 behind a permissions wall later, so set it as an
   -- upvalue here
-  local lua51 = lua51
+  local lua51 = dotos.lua51
 
   function _G.load(x, name, mode, env)
     checkArg(1, x, "string", "function")
     checkArg(2, name, "string", "nil")
     checkArg(3, mode, "string", "nil")
     checkArg(4, env, "table", "nil")
+    env = env or _G
 
     local result, err
     if type(x) == "string" then
@@ -108,7 +111,7 @@ end
 
 -- system console logger thingy
 local logbuf = {}
-function dotOS.log(fmt, ...)
+function dotos.log(fmt, ...)
   local msg = string.format(fmt, ...)
   logbuf[#logbuf+1] = msg
   if #logbuf > 4096 then
@@ -116,6 +119,8 @@ function dotOS.log(fmt, ...)
   end
 end
 
+-- package.lua nils out term later
+local term = term
 local function perr(err)
   term.setTextColor(16)
   term.setCursorPos(1, 3)
@@ -130,7 +135,7 @@ if not handle then
 end
 local data = handle.readAll()
 handle.close()
-local ok, err = load(data)
+local ok, err = load(data, "=io")
 if not ok then
   perr(err)
 end
