@@ -1,14 +1,16 @@
 -- DOT-OS BIOS --
 
 term.clear()
-local y = 0
+local y = 1
 local w, h = term.getSize()
+term.setCursorBlink(true)
 
 local function tprintf(fmt, ...)
   local ftext = string.format(fmt, ...)
   for text in ftext:gmatch("[^\n]+") do
     while #text > 0 do
       local ln = text:sub(1, w)
+      term.write(ln)
       text = text:sub(#ln + 1)
       if y == h then
         term.scroll(1)
@@ -16,20 +18,17 @@ local function tprintf(fmt, ...)
         y = y + 1
       end
       term.setCursorPos(1, y)
-      term.write(ln)
     end
   end
 end
 
 tprintf(".BIOS version 0.1.0")
-tprintf(" - by Development of Things Software\n")
+tprintf(" - by Development of Things Software\n \nProbing boot files...")
 
 local loadstr = load
 if _VERSION == "Lua 5.1" then
   loadstr = loadstring
 end
-
-tprintf("Probing boot files...")
 
 local function err(fmt, ...)
   term.setTextColor(0x4000)
@@ -48,7 +47,7 @@ local function boot(file)
   if not ok then
     err("failed loading file %s: %s", file, erro)
   end
-  local ok, traceback = xpcall(ok, debug.traceback)
+  local ok, traceback = pcall(ok, fs.getDir(file))
   if not ok and traceback then
     err("failed executing file %s: %s", file, traceback)
   end
@@ -58,14 +57,17 @@ end
 
 local function checkFile(f)
   if fs.exists(f) then
-    tprintf("Found %s - press any key within 2s to skip", f)
-    local id = os.startTimer(2)
-    local evt = coroutine.yield()
-    if evt == "timer" then
-      boot(f)
-    else
-      tprintf("Skipping!")
-      os.cancelTimer(id)
+    tprintf("Found %s - press any key within 0.5s to skip", f)
+    local id = os.startTimer(0.5)
+    while true do
+      local evt = coroutine.yield()
+      if evt == "timer" then
+        boot(f)
+      elseif evt == "char" then
+        tprintf("Skipping!")
+        os.cancelTimer(id)
+        break
+      end
     end
   end
 end
