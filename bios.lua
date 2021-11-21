@@ -21,9 +21,8 @@ local function tprintf(fmt, ...)
   end
 end
 
-tprintf("DoT Software BIOS version 0.1.0")
-tprintf(" - by Ocawesome101")
-tprintf("")
+tprintf(".BIOS version 0.1.0")
+tprintf(" - by Development of Things Software\n")
 
 local loadstr = load
 if _VERSION == "Lua 5.1" then
@@ -59,7 +58,15 @@ end
 
 local function checkFile(f)
   if fs.exists(f) then
-    boot(f)
+    tprintf("Found %s - press any key within 2s to skip", f)
+    local id = os.startTimer(2)
+    local evt = coroutine.yield()
+    if evt == "timer" then
+      boot(f)
+    else
+      tprintf("Skipping!")
+      os.cancelTimer(id)
+    end
   end
 end
 
