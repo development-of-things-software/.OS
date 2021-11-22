@@ -17,7 +17,7 @@ local default_thread = {io = {}, env = {}}
 function dotos.spawn(func, name, root)
   checkArg(1, func, "function")
   checkArg(2, name, "string")
-  checkArg(3, root, "string")
+  checkArg(3, root, "string", "nil")
   local parent = threads[current] or default_thread
   local thread = {
     coro = coroutine.create(func),
@@ -41,8 +41,22 @@ function dotos.getroot()
 end
 
 local function loop()
+  local lastTimerID
   while threads[1] do
+    if not lastTimerID then
+      lastTimerID = os.startTimer(0)
+    end
+    local signal = table.pack(coroutine.yield())
+    if signal[1] == "timer" and signal[2] == lastTimerID then
+      lastTimerID = nil
+    end
     for k, v in pairs(threads) do
+      local ok, res = coroutine.resume(v.coro, table.unpack(signal, 1,
+        signal.n))
+      if not ok then
+        dotos.log("thread " .. k .. " failed: " .. res)
+        threads[k] = nil
+      end
     end
   end
   os.shutdown()

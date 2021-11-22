@@ -278,10 +278,10 @@ end
 function _G.loadfile(file, mode, env)
   checkArg(1, file, "string")
   checkArg(2, mode, "string", "nil")
-  checkArg(2, env, "string", "nil")
+  checkArg(3, env, "table", "nil")
   local handle, err = io.open(file, "r")
   if not handle then
-    return nil, err
+    return nil, file .. ": " .. err
   end
   local data = handle:read("a")
   handle:close()

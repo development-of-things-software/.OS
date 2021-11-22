@@ -59,7 +59,7 @@ function checkArg(n, have, ...)
   end
   if not check(...) then
     error(string.format("bad argument #%d (expected %s, got %s",
-      n, table.concat({...}, " or "), have))
+      n, table.concat({...}, " or "), have), 2)
   end
 end
 
@@ -143,5 +143,13 @@ _G.io = ok(osPath)
 
 -- load package library
 _G.package = dofile("/dotos/libraries/package.lua")
+local sandbox = require("sandbox")
+
+local loop = dofile("/dotos/core/scheduler.lua")
+local init, err = loadfile("/dotos/init.lua", nil, sandbox.new())
+if not init then
+  perr(err)
+end
+dotos.spawn(init, ".init")
 
 while true do coroutine.yield() end

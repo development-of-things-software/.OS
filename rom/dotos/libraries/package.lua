@@ -26,12 +26,20 @@ package.searchers = {
     if package.preload[mod] then
       return package.preload[mod]
     else
-      return nil, "no field package.preload['" .. name .. "']"
+      return nil, "no field package.preload['" .. mod .. "']"
     end
   end,
   -- check for lua library
   function(mod)
-    return package.searchpath(mod, package.path, ".", "/")
+    local ok, err = package.searchpath(mod, package.path, ".", "/")
+    if not ok then
+      return nil, err
+    end
+    local func, aerr = loadfile(ok)
+    if not func then
+      return nil, aerr
+    end
+    return func()
   end
 }
 
@@ -57,11 +65,10 @@ function package.searchpath(name, path, sep, rep)
     if fs.exists(search) then
       return search
     else
-      if #serr < 0 then
+      if #serr > 0 then
         serr = serr .. "\n  "
-      else
-        serr = serr .. "\n  no file '" .. search .. "'"
       end
+      serr = serr .. "no file '" .. search .. "'"
     end
   end
 
@@ -76,7 +83,7 @@ function _G.require(mod)
   end
 
   local serr = "module '" .. mod .. "' not found:"
-  for _, searcher in ipairs(package.loaders) do
+  for _, searcher in ipairs(package.searchers) do
     local result, err = searcher(mod)
     if result then
       package.loaded[mod] = result

@@ -1,5 +1,6 @@
 -- DOT-OS BIOS --
 
+local term = term
 term.clear()
 local y = 1
 local w, h = term.getSize()
