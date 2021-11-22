@@ -64,12 +64,12 @@ local function loop()
       local ok, res = coroutine.resume(v.coro, table.unpack(signal, 1,
         signal.n))
       if not ok then
-        dotos.log("thread %s failed: %s", k, res)
+        dotos.log("[.os] thread %s failed: %s", k, res)
         threads[k] = nil
       end
     end
   end
-  dotos.log("Init thread has stopped")
+  dotos.log("[.os] init thread has stopped")
   os.sleep(3)
   os.shutdown()
 end

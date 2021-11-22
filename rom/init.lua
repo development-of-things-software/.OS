@@ -76,8 +76,8 @@ local function perr(err)
 end
 
 
-dotos.log("running from /" .. osPath)
-dotos.log(".OS is starting...")
+dotos.log("[.os] running from /" .. osPath)
+dotos.log("[.os] starting...")
 
 -- argument checking
 function checkArg(n, have, ...)
