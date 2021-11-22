@@ -47,6 +47,8 @@ local fs = fs
 local term = term
 _G.fs = nil
 _G.term = nil
+package.loaded.fs = fs
+package.loaded.term = term
 
 function package.searchpath(name, path, sep, rep)
   checkArg(1, name, "string")

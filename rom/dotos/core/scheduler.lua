@@ -6,7 +6,7 @@ local current = 0
 local default_stream = {
   readAll = function() end,
   readLine = function() end,
-  write = function() end,
+  write = function(str) dotos.log(str) end,
   flush = function() end,
   seek = function() end,
   close = function() end,
@@ -30,6 +30,7 @@ function dotos.spawn(func, name, root)
     pwd = parent.pwd or "/",
     root = root or parent.root or "/"
   }
+  threads[#threads+1] = thread
 end
 
 function dotos.getpwd()
@@ -38,6 +39,14 @@ end
 
 function dotos.getroot()
   return (threads[current] or default_thread).root
+end
+
+function dotos.getio(field)
+  return (threads[current] or default_thread).io[field] or default_stream
+end
+
+function dotos.exit()
+  threads[current] = nil
 end
 
 local function loop()
@@ -49,16 +58,19 @@ local function loop()
     local signal = table.pack(coroutine.yield())
     if signal[1] == "timer" and signal[2] == lastTimerID then
       lastTimerID = nil
+      signal = {n=0}
     end
     for k, v in pairs(threads) do
       local ok, res = coroutine.resume(v.coro, table.unpack(signal, 1,
         signal.n))
       if not ok then
-        dotos.log("thread " .. k .. " failed: " .. res)
+        dotos.log("thread %s failed: %s", k, res)
         threads[k] = nil
       end
     end
   end
+  dotos.log("Init thread has stopped")
+  os.sleep(3)
   os.shutdown()
 end
 

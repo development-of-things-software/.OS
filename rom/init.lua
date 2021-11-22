@@ -30,22 +30,54 @@ local palette = {
   [32768] = 0xFFFFFF
 }
 
+-- package.lua nils out term later
+local term = term
 for k, v in pairs(palette) do
   term.setPaletteColor(k, v)
 end
 
-term.setBackgroundColor(256)
-term.setTextColor(0x8000)
-term.clear()
-term.setCursorPos(1, 1)
-term.write("running from /" .. osPath)
-term.setCursorPos(1, 2)
-term.write(".OS is starting...")
-
 -- OS API table
 _G.dotos = {
   path = "/"..osPath,
+  show_logs = true
 }
+
+term.setBackgroundColor(0x100)
+term.setTextColor(0x8000)
+term.clear()
+
+local w, h = term.getSize()
+-- system console logger thingy
+local logbuf = {}
+function dotos.log(fmt, ...)
+  local msg = string.format(fmt, ...)
+  logbuf[#logbuf+1] = msg
+  if dotos.show_logs then
+    for line in msg:gmatch("[^\n]+") do
+      while #line > 0 do
+        local ln = line:sub(1, w)
+        line = line:sub(#ln + 1)
+        term.scroll(1)
+        term.setCursorPos(1, h)
+        term.write(ln)
+      end
+    end
+  end
+  if #logbuf > 4096 then
+    table.remove(logbuf, 1)
+  end
+end
+
+local function perr(err)
+  term.setTextColor(16)
+  term.setCursorPos(1, 3)
+  term.write("FATAL: " .. err)
+  while true do coroutine.yield() end
+end
+
+
+dotos.log("running from /" .. osPath)
+dotos.log(".OS is starting...")
 
 -- argument checking
 function checkArg(n, have, ...)
@@ -109,25 +141,6 @@ if _VERSION == "Lua 5.1" then
   _G.table.maxn = nil
 end
 
--- system console logger thingy
-local logbuf = {}
-function dotos.log(fmt, ...)
-  local msg = string.format(fmt, ...)
-  logbuf[#logbuf+1] = msg
-  if #logbuf > 4096 then
-    table.remove(logbuf, 1)
-  end
-end
-
--- package.lua nils out term later
-local term = term
-local function perr(err)
-  term.setTextColor(16)
-  term.setCursorPos(1, 3)
-  term.write("FATAL: " .. err)
-  while true do coroutine.yield() end
-end
-
 -- load io library
 local handle, err = fs.open(fs.combine(osPath, "/dotos/libraries/io.lua"), "r")
 if not handle then
@@ -143,13 +156,14 @@ _G.io = ok(osPath)
 
 -- load package library
 _G.package = dofile("/dotos/libraries/package.lua")
-local sandbox = require("sandbox")
+-- install some more essential functions
+dofile("/dotos/core/essentials.lua")
 
 local loop = dofile("/dotos/core/scheduler.lua")
-local init, err = loadfile("/dotos/init.lua", nil, sandbox.new())
+local init, err = loadfile("/dotos/init.lua")
 if not init then
   perr(err)
 end
 dotos.spawn(init, ".init")
 
-while true do coroutine.yield() end
+loop()

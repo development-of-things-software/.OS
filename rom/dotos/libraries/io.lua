@@ -45,14 +45,12 @@ do
   function fs.list(path)
     checkArg(1, path, "string")
     path = resolve(path)
-    local files, err = list(path)
-    if not files then
-      return nil, err
-    end
+    local files = list(path)
     if path == "/" then
       -- inject /dotos into the root listing
       files[#files+1] = "dotos"
     end
+    return files
   end
 
   -- override: fs.getSize
