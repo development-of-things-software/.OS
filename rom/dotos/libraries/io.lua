@@ -25,11 +25,13 @@ do
   -- is; otherwise, resolve the path based on the current program's working
   -- directory
   -- this is to allow .OS to run from anywhere
-  local function resolve(path, pwd)
-    pwd = pwd or (dotos.getpwd and dotos.getpwd()) or "/"
+  local function resolve(path)
+    local root = (dotos.getroot and dotos.getroot()) or "/"
+    local pwd = (dotos.getpwd and dotos.getpwd()) or "/"
     if path:sub(1,1) ~= "/" then
       path = fs.combine(pwd, path)
     end
+    path = fs.combine(root, path)
     local segments = split(path)
     if segments[1] == "dotos" then
       return "/" .. fs.combine(osPath, path)
