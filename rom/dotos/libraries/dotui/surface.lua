@@ -86,6 +86,13 @@ function api.new(x, y, w, h)
     w = w, h = h,
     buffer = buf.new()
   }, {__index = surf})
+  return new
+end
+
+function api.register(new)
+  checkArg(1, new, "table")
+  surfaces[#surfaces+1] = new
+  return true
 end
 
 return api

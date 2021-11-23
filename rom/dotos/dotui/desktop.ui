@@ -1,0 +1,13 @@
+// Desktop UI file
+
+bar {
+  surface x=1 y=1 w=WIDTH h=1
+  background color=GRAY
+  button color=LIGHTGRAY textcolor=BLACK text="Menu" action=menu
+}
+
+main {
+  surface x=1 y=1 w=WIDTH h=HEIGHT
+  background color=BLUE
+  show bar
+}

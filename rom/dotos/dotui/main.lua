@@ -21,9 +21,8 @@ local function findOverlap(x, y)
   end
 end
 
--- load the main desktop file
-local uilisp = require("dotui.uilisp")
-uilisp.load("/dotos/dotui/desktop.uilisp")
+-- load the main desktop
+dotos.spawn(assert(loadfile("/dotos/dotui/desktop.lua")), "desktop")
 
 -- signals to send only to the focused surface
 local focused_only = {
