@@ -27,6 +27,8 @@ local bundled_order = {
 --@header2 { Fields }
 --@monospace { colors.bundled: @green { table } }
 --  Provides all the CraftOS color constants for use with bundled cables, and bundled cables @italic { only }.
+--
+--
 -- }
 local colors = {}
 colors.bundled = {}
