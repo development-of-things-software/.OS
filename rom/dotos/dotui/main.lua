@@ -22,8 +22,8 @@ local function findOverlap(x, y)
 end
 
 -- load the main desktop file
-local uml = require("dotui.uiml")
-uml.load("/dotos/dotui/desktop.uiml")
+local uilisp = require("dotui.uilisp")
+uilisp.load("/dotos/dotui/desktop.uilisp")
 
 -- signals to send only to the focused surface
 local focused_only = {

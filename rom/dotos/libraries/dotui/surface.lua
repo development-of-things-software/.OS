@@ -51,6 +51,13 @@ function surf:get(x, y, w, h)
   return ret_txt, ret_fg, ret_bg
 end
 
+function surf:resize(w, h)
+  self.buffer:resize(w, h)
+  self.w = w
+  self.h = h
+  return self
+end
+
 function surf:startdrag()
   self.dragging = true
   return self
@@ -75,6 +82,8 @@ function api.new(x, y, w, h)
   checkArg(3, w, "number")
   checkArg(4, w, "number")
   local new = setmetatable({
+    x = x, y = y,
+    w = w, h = h,
     buffer = buf.new()
   }, {__index = surf})
 end
