@@ -46,27 +46,66 @@ function s:fill(x, y, w, h, ch, fg, bg)
   checkArg(3, w, "number")
   checkArg(4, h, "number")
   checkArg(5, ch, "string", "nil")
-  checkArg(6, fg, "number", self.fg and "nil")
-  checkArg(7, bg, "number", self.bg and "nil")
+  checkArg(6, fg, "number", self.foreground and "nil")
+  checkArg(7, bg, "number", self.background and "nil")
+  if w == 0 or h == 0 then return self end
   ch = (ch or " "):sub(1,1):rep(w)
-  fg = colors.toBlit(fg or self.fg):rep(w)
-  bg = colors.toBlit(bg or self.bg):rep(w)
+  fg = colors.toBlit(fg or self.foreground):rep(w)
+  bg = colors.toBlit(bg or self.background):rep(w)
   into_buffer(self.buffer_text, x, y, ch)
   into_buffer(self.buffer_fg, x, y, fg)
   into_buffer(self.buffer_bg, x, y, bg)
   return self
 end
 
+function s:set(x, y, str, fg, bg)
+  checkArg(1, x, "number")
+  checkArg(2, y, "number")
+  checkArg(3, str, "string")
+  checkArg(4, fg, "number", self.foreground and "nil")
+  checkArg(5, bg, "number", self.background and "nil")
+  if #str == 0 then return self end
+  fg = colors.toBlit(fg or self.foreground):rep(#str)
+  bg = colors.toBlit(bg or self.background):rep(#str)
+  into_buffer(self.buffer_text, x, y, str)
+  into_buffer(self.buffer_fg, x, y, fg)
+  into_buffer(self.buffer_bg, x, y, bg)
+  return self
+end
+
+function s:rawset(x, y, str, fg, bg)
+  checkArg(1, x, "number")
+  checkArg(2, y, "number")
+  checkArg(3, str, "string")
+  checkArg(4, fg, "string")
+  checkArg(5, bg, "string")
+  assert(#str == #fg and #str == #bg, "mismatched argument lengths")
+  into_buffer(self.buffer_text, x, y, str)
+  into_buffer(self.buffer_fg, x, y, fg)
+  into_buffer(self.buffer_bg, x, y, bg)
+  return self
+end
+
+function s:get(x, y, len)
+  checkArg(1, x, "number")
+  checkArg(2, y, "number")
+  checkArg(3, len, "number")
+  local text = self.buffer_text[y]:sub(x, x + len - 1)
+  local fg = self.buffer_fg[y]:sub(x, x + len - 1)
+  local bg = self.buffer_bg[y]:sub(x, x + len - 1)
+  return text, fg, bg
+end
+
 function s:fg(col)
   checkArg(1, col, "number", "nil")
-  if col then self.fg = colors.toBlit(col) return self end
-  return self.fg
+  if col then self.foreground = col return self end
+  return self.foreground
 end
 
 function s:bg(col)
   checkArg(1, col, "number", "nil")
-  if col then self.bg = colors.toBlit(col) return self end
-  return self.bg
+  if col then self.background = col return self end
+  return self.background
 end
 
 local function expand_buffer(self, buf, nw, nh)

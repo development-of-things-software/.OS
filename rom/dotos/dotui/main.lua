@@ -36,9 +36,10 @@ local focused_only = {
   char = true
 }
 
+local offsetX, offsetY = 0, 0
 while true do
   for i=#surfaces, 1, -1 do
-    surfaces[i]:blit(master_surf)
+    surfaces[i].buffer:blit(master_surf, surfaces[i].x, surfaces[i].y)
   end
   master_surf:draw(1, 1)
   local sig = table.pack(coroutine.yield())
@@ -63,6 +64,7 @@ while true do
         target.x = sig[3] - offsetX, sig[4] - offsetY
       else
         offsetX = sig[3]
+        offsetY = sig[4]
       end
     elseif sig[1] == "mouse_up" then
       target.dragging = false

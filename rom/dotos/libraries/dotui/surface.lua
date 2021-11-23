@@ -8,9 +8,56 @@ local surfaces = {}
 
 local surf = {}
 
-function surf:blit(parent)
-  checkArg(1, parent, "table")
-  self.buffer:blit(parent.buffer, self.x, self.y)
+function surf:blit(...)
+  self.buffer:rawset(...)
+  return self
+end
+
+function surf:fg(f)
+  if f then self.buffer:fg(f) return self end
+  return self.buffer:fg()
+end
+
+function surf:fg(b)
+  if b then self.buffer:bg(b) return self end
+  return self.buffer:bg()
+end
+
+function surf:set(...)
+  self.buffer:set(...)
+  return self
+end
+
+function surf:fill(...)
+  self.buffer:fill(...)
+  return self
+end
+
+function surf:get(x, y, w, h)
+  checkArg(1, x, "number")
+  checkArg(2, y, "number")
+  checkArg(3, w, "number")
+  checkArg(4, h, "number")
+  local ret_txt, ret_fg, ret_bg = {}, {}, {}
+  for i=1, h, 1 do
+    local t, f, b  self.buffer:get(x, y + i - 1, w)
+    ret_txt[#ret_txt+1] = t
+    ret_fg[#ret_fg+1] = g
+    ret_bg[#ret_bg+1] = b
+  end
+  if h == 1 then
+    return ret_txt[1], ret_fg[1], ret_bg[1]
+  end
+  return ret_txt, ret_fg, ret_bg
+end
+
+function surf:startdrag()
+  self.dragging = true
+  return self
+end
+
+function surf:close()
+  self.delete = true
   return self
 end
 
@@ -27,6 +74,9 @@ function api.new(x, y, w, h)
   checkArg(2, y, "number")
   checkArg(3, w, "number")
   checkArg(4, w, "number")
+  local new = setmetatable({
+    buffer = buf.new()
+  }, {__index = surf})
 end
 
 return api
