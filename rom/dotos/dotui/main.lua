@@ -7,7 +7,7 @@ local term = require("term")
 local buf = require("dotui.buffer")
 
 -- shared surfaces
-local surf = require("dotui.surf")
+local surf = require("dotui.surface")
 local surfaces = surf.getSurfaceTable()
 
 local master_surf = buf.new(term.getSize())
@@ -20,6 +20,10 @@ local function findOverlap(x, y)
     end
   end
 end
+
+-- load the main desktop file
+local uml = require("dotui.uiml")
+uml.load("/dotos/dotui/desktop.uiml")
 
 -- signals to send only to the focused surface
 local focused_only = {
@@ -34,9 +38,9 @@ local focused_only = {
 
 while true do
   for i=#surfaces, 1, -1 do
-    surfaces[i]:redraw(master_surf)
+    surfaces[i]:blit(master_surf)
   end
-  master_surf:redraw(1, 1)
+  master_surf:draw(1, 1)
   local sig = table.pack(coroutine.yield())
   if sig.n > 0 then
     local target = surfaces[1]
@@ -54,16 +58,27 @@ while true do
         target = desktop
       end
     end
-    if sig[1] == "mouse_click" or sig[1] == "mouse_up" or sig[1] == "mouse_drag"
-        or sig[1] == "mouse_scroll" then
-      sig[3] = sig[3] - (target.x or 1) + 1
-      sig[4] = sig[4] - (target.y or 1) + 1
+    if sig[1] == "mouse_drag" then
+      if target.dragging then
+        target.x = sig[3] - offsetX, sig[4] - offsetY
+      else
+        offsetX = sig[3]
+      end
+    elseif sig[1] == "mouse_up" then
+      target.dragging = false
     end
-    if focused_only[sig[1]] then
-      target:sendSignal(sig)
-    else
-      for i=1, #surfaces, 1 do
-        surfaces[i]:sendSignal(sig)
+    if not target.dragging then
+      if sig[1] == "mouse_click" or sig[1] == "mouse_up" or
+          sig[1] == "mouse_drag" or sig[1] == "mouse_scroll" then
+        sig[3] = sig[3] - (target.x or 1) + 1
+        sig[4] = sig[4] - (target.y or 1) + 1
+      end
+      if focused_only[sig[1]] then
+        target:sendSignal(sig)
+      else
+        for i=1, #surfaces, 1 do
+          surfaces[i]:sendSignal(sig)
+        end
       end
     end
   end

@@ -28,7 +28,6 @@ local bundled_order = {
 --@monospace { colors.bundled: @green { table } }
 --  Provides all the CraftOS color constants for use with bundled cables, and bundled cables @italic { only }.
 --
---
 -- }
 local colors = {}
 colors.bundled = {}
@@ -70,6 +69,11 @@ end
 function colors.toBlit(col)
   checkArg(1, col, "number")
   return blit_colors[col]
+end
+
+function colors.fromBlit(col)
+  checkArg(1, col, "string")
+  return 2^tonumber(col, 16)
 end
 
 function colors.pack(r, g, b)

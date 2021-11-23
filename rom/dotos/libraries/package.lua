@@ -91,7 +91,6 @@ function _G.require(mod)
       package.loaded[mod] = result
       return result
     else
-      print(err)
       serr = serr .. "\n  " .. err
     end
   end
