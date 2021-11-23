@@ -10,4 +10,6 @@ local s = {}
 function s:draw()
 end
 
+local buf = {}
 
+return buf

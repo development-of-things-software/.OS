@@ -53,7 +53,7 @@ local function loop()
   local lastTimerID
   while threads[1] do
     if not lastTimerID then
-      lastTimerID = os.startTimer(0)
+      lastTimerID = os.startTimer(0.5)
     end
     local signal = table.pack(coroutine.yield())
     if signal[1] == "timer" and signal[2] == lastTimerID then

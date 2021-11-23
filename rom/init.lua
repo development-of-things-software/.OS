@@ -77,9 +77,21 @@ end
 
 
 dotos.log("[.os] running from /" .. osPath)
-dotos.log("[.os] starting...")
 
 -- argument checking
+-- @docs {
+-- @header { checkArg }
+-- This function provides basic argument checking for all programs running under .OS.
+-- @lfunction { 
+--   @lfname { checkArg }
+--   @lfarg { number n The number of the argument to check }
+--   @lfarg { any have The argument to check }
+--   @lfarg { string ... The type(s) against which to check the argument }
+--   @lfdesc { 
+--     Checks whether the argument @monospace { have }'s type is equal to any of the provided types.  If it is not, throws an error.
+--   }
+-- }
+-- }
 function checkArg(n, have, ...)
   have = type(have)
   local function check(want, ...)
