@@ -102,7 +102,7 @@ function checkArg(n, have, ...)
     end
   end
   if not check(...) then
-    error(string.format("bad argument #%d (expected %s, got %s",
+    error(string.format("bad argument #%d (expected %s, got %s)",
       n, table.concat({...}, " or "), have), 2)
   end
 end

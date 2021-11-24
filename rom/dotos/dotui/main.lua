@@ -38,9 +38,13 @@ local focused_only = {
 local offsetX, offsetY = 0, 0
 while true do
   for i=#surfaces, 1, -1 do
-    surfaces[i].buffer:blit(master_surf, surfaces[i].x, surfaces[i].y)
+    if surfaces[i].delete then
+      table.remove(surfaces, i)
+    else
+      surfaces[i].buffer:blit(master_surf, surfaces[i].x, surfaces[i].y)
+    end
   end
-  master_surf:draw(1, 1)
+  --master_surf:draw(1, 1)
   local sig = table.pack(coroutine.yield())
   if sig.n > 0 then
     local target = surfaces[1]
@@ -49,7 +53,7 @@ while true do
     elseif sig[1] == "mouse_click" then
       local i, surface = findOverlap(sig[3], sig[4])
       if i then
-        if i ~= 1 then
+        if i ~= 1 and not surface.keepInBackground then
           table.remove(surfaces, i)
           table.insert(surfaces, 1, surface)
           target = surface

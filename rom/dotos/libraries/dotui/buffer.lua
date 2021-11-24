@@ -50,6 +50,8 @@ function s:fill(x, y, w, h, ch, fg, bg)
   checkArg(7, bg, "number", self.background and "nil")
   if w == 0 or h == 0 then return self end
   ch = (ch or " "):sub(1,1):rep(w)
+  self.foreground = fg or self.foreground
+  self.background = bg or self.background
   fg = colors.toBlit(fg or self.foreground):rep(w)
   bg = colors.toBlit(bg or self.background):rep(w)
   into_buffer(self.buffer_text, x, y, ch)
@@ -65,6 +67,8 @@ function s:set(x, y, str, fg, bg)
   checkArg(4, fg, "number", self.foreground and "nil")
   checkArg(5, bg, "number", self.background and "nil")
   if #str == 0 then return self end
+  self.foreground = fg or self.foreground
+  self.background = bg or self.background
   fg = colors.toBlit(fg or self.foreground):rep(#str)
   bg = colors.toBlit(bg or self.background):rep(#str)
   into_buffer(self.buffer_text, x, y, str)
@@ -140,6 +144,7 @@ function buf.new(w, h)
     buffer_fg = {},
     buffer_bg = {},
     buffer_text = {},
+    w = w, h = h
   }, {__index = s, __metatable = {}})
   local zero = string.rep("0", w)
   local blank = string.rep(" ", w)

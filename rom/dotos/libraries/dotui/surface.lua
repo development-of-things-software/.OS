@@ -14,11 +14,13 @@ function surf:blit(...)
 end
 
 function surf:fg(f)
+  checkArg(1, f, "number", "nil")
   if f then self.buffer:fg(f) return self end
   return self.buffer:fg()
 end
 
-function surf:fg(b)
+function surf:bg(b)
+  checkArg(1, b, "number", "nil")
   if b then self.buffer:bg(b) return self end
   return self.buffer:bg()
 end
@@ -63,6 +65,23 @@ function surf:startdrag()
   return self
 end
 
+function surf:sendSignal(sig)
+  self.signals[#self.signals+1] = sig
+end
+
+function surf:pollSignal()
+  if #self.signals > 0 then
+    return table.remove(self.signals, 1)
+  end
+end
+
+function surf:receiveSignal()
+  while #self.signals == 0 do
+    coroutine.yield()
+  end
+  return self:pollSignal()
+end
+
 function surf:close()
   self.delete = true
   return self
@@ -84,7 +103,8 @@ function api.new(x, y, w, h)
   local new = setmetatable({
     x = x, y = y,
     w = w, h = h,
-    buffer = buf.new()
+    buffer = buf.new(w, h),
+    signals = {},
   }, {__index = surf})
   return new
 end
