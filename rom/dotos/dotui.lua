@@ -14,8 +14,8 @@ local master_surf = surf.new(term.getSize())
 
 local function findOverlap(x, y)
   for i=1, #windows, 1 do
-    if x >= windows[i].x and x <= windows[i].x + windows[i].w - 1 and
-        y >= windows[i].y and y <= windows[i].y + windows[i].h - 1 then
+    if x >= windows[i].x and x < windows[i].x + windows[i].w and
+        y >= windows[i].y and y < windows[i].y + windows[i].h then
       return i, windows[i]
     end
   end
@@ -70,6 +70,7 @@ while true do
         offsetY = sig[4] - target.y
       end
     elseif sig[1] == "mouse_up" then
+      for i=1, #windows, 1 do windows[i].dragging = false end
       target.dragging = false
     end
     if not target.dragging then
