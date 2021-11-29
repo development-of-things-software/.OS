@@ -5,6 +5,7 @@ local colors = require("colors")
 local lerp = require("advmath").lerp
 local surf = require("surface")
 local term = require("term")
+local sigtypes = require("sigtypes")
 
 local function new(self, ...)
   local new = setmetatable({}, {__index = self, __metatable = {}})
@@ -152,14 +153,15 @@ function lib.Switch:init(args)
     self.switched = os.epoch("utc")
   end
   lib.Clickable.init(self, args)
-  checkArg("activatedColor", args.activatedColor, "number")
-  self.activatedColor = args.activatedColor
+  --checkArg("activatedColor", args.activatedColor, "number")
+  --self.activatedColor = args.activatedColor
 end
 
 function lib.Switch:draw(xoff, yoff)
   local x, y, w, h = computeCoordinates(self, xoff, yoff)
   self.surface:fill(x, y, w, h, " ", self.fcolor,
-    self.state and self.activatedColor or self.bcolor)
+    self.state and colors.blue or colors.gray)
+  --self.activatedColor or self.bcolor)
   local knobWidth = math.ceil(w / 10)
   if self.state then
     self.surface:fill(x, y, knobWidth, self.h, " ",
@@ -168,6 +170,73 @@ function lib.Switch:draw(xoff, yoff)
     self.surface.fill(x + w - knobWidth, y, w, h, " ",
       self.bcolor, self.fcolor)
   end
+end
+
+lib.Menu = lib.UIElement:new()
+function lib.Menu:init(args)
+  base_init(self, args)
+  self.items = 0
+end
+
+function lib.Menu:addItem(text, callback)
+  checkArg(1, text, "string")
+  checkArg(2, callback, "function")
+  self.items = self.items + 1
+  -- TODO: scrollable menus?
+  if self.items > self.h then self.h = self.items end
+  local obj = lib.Clickable:new {
+    x = 1, y = self.items, w = self.surface.w, h = 1,
+    text = text, callback = callback, fg = self.fcolor,
+    bg = self.bcolor
+  }
+  self:addChild(obj)
+  return obj
+end
+
+function lib.Menu:addSpacer()
+  self.items = self.items + 1
+  if self.items > self.h then self.h = self.items end
+  local obj = lib.Label:new {
+    x = 1, y = self.items, w = self.surface.w, h = 1,
+    text = string.rep("\140", self.surface.w),
+    fg = self.fcolor, bg = self.bcolor
+  }
+end
+
+lib.Selector = lib.UIElement:new()
+function lib.Selector:init(args)
+  base_init(self, args)
+  self.selected = {}
+  checkArg("items", args.items, "table", "nil")
+  self.items = args.items or {}
+  self.exclusive = not not args.exclusive
+  --checkArg("activatedColor", args.activatedColor, "number")
+  --self.activeColor = args.activatedColor
+end
+
+function lib.Selector:addItem(text)
+  checkArg(1, text, "string")
+  self.items[#self.items+1] = text
+end
+
+function lib.Selector:draw(xoff, yoff)
+  local x, y, w, h = computeCoordinates(self, xoff, yoff)
+  for i=1, #self.items, 1 do
+    if self.selected[i] then
+      self.surface:set(x, y+i-1, "\7", colors.blue, self.bcolor)
+    else
+      self.surface:set(x, y+i-1, "\7", self.fcolor, self.bcolor)
+    end
+    self.surface:set(x+2, y+i-1, self.items[i], self.fcolor, self.bcolor)
+  end
+end
+
+function lib.Selector:find(x, y)
+  checkArg(1, x, "number")
+  checkArg(2, y, "number")
+  if y > #self.items then return end
+  if self.exclusive then self.selected = {} end
+  self.selected[y] = not self.selected[y]
 end
 
 -- window management
@@ -201,6 +270,7 @@ function window:addPage(id, page)
   checkArg(2, page, "table")
   self.pages[id] = page
   if not self.page then self.page = id end
+  if not page.surface then page.surface = self.buffer end
 end
 
 function window:drawPage(id)
@@ -259,6 +329,20 @@ end
 -- common utilities
 lib.util = {}
 
+function lib.util.loadApp(name, file)
+  checkArg(1, name, "string")
+  checkArg(2, file, "string")
+  local ok, err = loadfile(file)
+  if not ok then
+    dotos.spawn(function()
+      lib.util.prompt(file..": "..err, {"OK", title="Application Error"})
+      dotos.exit()
+    end, ".prompt")
+    return nil
+  end
+  return dotos.spawn(ok, name)
+end
+
 function lib.util.basicWindow(x, y, w, h, title)
   checkArg(1, x, "number")
   checkArg(2, y, "number")
@@ -289,6 +373,35 @@ function lib.util.basicWindow(x, y, w, h, title)
   return window, body
 end
 
+-- an event loop that should suffice for most apps
+function lib.util.genericWindowLoop(win, handlers)
+  checkArg(1, win, "table")
+  checkArg(2, handlers, "table", "nil")
+  local focusedElement
+  while not win.delete do
+    win:draw()
+    local signal = win:receiveSignal()
+    if sigtypes.keyboard[signal[1]] then
+      if focusedElement and focusedElement.handleKey then
+        focusedElement:handleKey(signal[1], signal[2])
+      end
+    elseif sigtypes.mouse[signal[1]] then
+      if signal[1] == "mouse_drag" then
+        win.dragging = true
+      else
+        local element = win:find(signal[3], signal[4])
+        focusedElement = element or focusedElement
+        if element then
+          element:callback()
+        end
+      end
+    end
+    if handlers and handlers[signal[1]] then
+      pcall(handlers[signal[1]], table.unpack(signal, 1, signal.n))
+    end
+  end
+end
+
 function lib.util.prompt(text, opts)
   checkArg(1, text, "string")
   checkArg(2, opts, "table")
@@ -311,7 +424,6 @@ function lib.util.prompt(text, opts)
       end, text = opts[i]
     })
   end
-  local lastWasDrag
   while not window.delete do
     window:draw()
     local sig = window:receiveSignal()
@@ -321,11 +433,10 @@ function lib.util.prompt(text, opts)
         element:callback()
       end
     elseif sig[1] == "mouse_drag" then
-      window.dragging = lastWasDrag
+      window.dragging = true
     elseif sig[1] == "mouse_up" then
       window.dragging = false
     end
-    lastWasDrag = sig[1] == "mouse_drag"
   end
   return result
 end

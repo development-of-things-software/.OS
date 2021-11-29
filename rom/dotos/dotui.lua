@@ -28,6 +28,7 @@ local function spawn_desktop()
   deskpid = dotos.spawn(assert(loadfile("/dotos/dotui/desktop.lua")),
     "desktop")
 end
+dotos.show_logs = true
 
 -- signals to send only to the focused window
 local focused_only = {
@@ -46,7 +47,7 @@ while true do
     spawn_desktop()
   end
   for i=#windows, 1, -1 do
-    if windows[i].delete or not dotos.running(windows[i].pid) then
+    if windows[i].delete or not dotos.running(windows[i].pid or 0) then
       table.remove(windows, i)
     else
       windows[i].buffer:blit(master_surf, windows[i].x, windows[i].y)
@@ -65,8 +66,10 @@ while true do
         local i, window = findOverlap(sig[3], sig[4])
         target = window
         if i ~= 1 and not window.keepInBackground then
-          table.remove(windows, i)
-          table.insert(windows, 1, window)
+          local win = table.remove(windows, i)
+          windows[1]:sendSignal({"unfocus"})
+          table.insert(windows, 1, win)
+          windows[1]:sendSignal({"focus"})
         end
       end
     end

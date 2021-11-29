@@ -22,30 +22,24 @@ local menubar = dotui.UIPage:new {
   fg = colors.lightBlue, bg = colors.gray
 }
 
-local menu = dotui.UIPage:new {
-  x = 1, y = 2,
-  w = 16, h = 5,
-  bg = colors.gray, fg = colors.lightGray,
-}
-menu.hidden = true
-
+local menupid = 0
 local menubtn = dotui.Clickable:new {
   x = 1,
   y = 1,
   w = 6, h = 1,
   bg = colors.lightGray, fg = colors.black,
   callback = function()
-    menu.hidden = not menu.hidden
+    if not dotos.running(menupid) then
+      menupid = dotui.util.loadApp(".menu", "/dotos/dotui/menu.lua") or 0
+    end
   end,
-  surface = window.buffer,
   text = " Menu "
 }
 
 base:addChild(menubar)
 menubar:addChild(menubtn)
-base:addChild(menu)
 
--- menu entries
+--[[ menu entries
 menu:addChild(dotui.Clickable:new {
   x = 1, y = 1, w = 16, h = 1, bg = colors.gray, fg = colors.white,
   text = "Restart", callback = function()
@@ -72,7 +66,7 @@ menu:addChild(dotui.Clickable:new {
     menu.hidden = true
     loadApp("/dotos/dotui/syslog.lua")
   end
-})
+})]]
 
 local surface = window.buffer
 while true do
@@ -85,8 +79,6 @@ while true do
     local element = base:find(sig[3], sig[4])
     if element then
       element:callback()
-    else
-      menu.hidden = true
     end
   elseif sig[1] == "thread_died" then
     dotui.util.prompt(sig[3], {"OK",
