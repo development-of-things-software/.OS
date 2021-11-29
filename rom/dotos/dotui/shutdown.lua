@@ -5,17 +5,45 @@ local colors = require("colors")
 
 local window, base = dotui.util.basicWindow(3, 3, 24, 10, "Shutdown")
 
-base.text = "Choose an action to perform:"
+local page = dotui.UIPage:new {
+  x = 2, y = 2, w = base.w - 2, h = base.h - 1, fg = colors.black,
+  bg = colors.white
+}
+base:addChild(page)
+
+page.text = "Choose an action to perform:"
+page.wrap = true
 
 local items = {
   "Shut Down",
   "Restart"
 }
 
-base:addChild( dotui.Selector:new {
-  x = 2, y = 3, w = window.w, h = #items,
+local itemFunctions = {
+  os.shutdown,
+  os.reboot
+}
+
+local selector = dotui.Selector:new {
+  x = 2, y = 4, w = page.w, h = #items,
   items = items, fg = colors.black, bg = colors.white,
   exclusive = true
+}
+
+selector.selected[1] = true
+
+page:addChild(selector)
+
+page:addChild( dotui.Clickable:new {
+  x = page.w - 7, y = page.h - 1, w = 7, h = 1,
+  text = "Confirm", fg = colors.black, bg = colors.lightGray,
+  callback = function()
+    for i, func in ipairs(itemFunctions) do
+      if selector.selected[i] then
+        func()
+      end
+    end
+  end
 } )
 
 dotui.util.genericWindowLoop(window)

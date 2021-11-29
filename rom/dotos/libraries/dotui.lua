@@ -61,7 +61,7 @@ function element:draw(xoff, yoff)
   if self.text then
     local text
     if self.wrap then
-      text = textutils.wrap(self.text, w, h)
+      text = textutils.wordwrap(self.text, w, h)
     else
       text = {self.text:sub(1, w)}
     end
@@ -69,8 +69,10 @@ function element:draw(xoff, yoff)
       self.surface:set(x, y+i-1, text[i], self.fg, self.bg)
     end
   end
+  xoff = xoff or 0
+  yoff = yoff or 0
   for k, v in pairs(self.children) do
-    v:draw(self.x - 1, self.y - 1)
+    v:draw(xoff + self.x - 1, yoff + self.y - 1)
   end
 end
 
@@ -161,7 +163,6 @@ function lib.Switch:draw(xoff, yoff)
   local x, y, w, h = computeCoordinates(self, xoff, yoff)
   self.surface:fill(x, y, w, h, " ", self.fcolor,
     self.state and colors.blue or colors.gray)
-  --self.activatedColor or self.bcolor)
   local knobWidth = math.ceil(w / 10)
   if self.state then
     self.surface:fill(x, y, knobWidth, self.h, " ",
@@ -223,9 +224,9 @@ function lib.Selector:draw(xoff, yoff)
   local x, y, w, h = computeCoordinates(self, xoff, yoff)
   for i=1, #self.items, 1 do
     if self.selected[i] then
-      self.surface:set(x, y+i-1, "\7", colors.blue, self.bcolor)
+      self.surface:set(x, y+i-1, "\7", colors.white, colors.blue)
     else
-      self.surface:set(x, y+i-1, "\7", self.fcolor, self.bcolor)
+      self.surface:set(x, y+i-1, "\7", colors.black, colors.lightGray)
     end
     self.surface:set(x+2, y+i-1, self.items[i], self.fcolor, self.bcolor)
   end
@@ -358,7 +359,7 @@ function lib.util.basicWindow(x, y, w, h, title)
   }
   local close = lib.Clickable:new {
     x = window.w, y = 1, w = 1, h = 1, text = "X",
-    fg = colors.black, bg = colors.lightGray, callback = function()
+    fg = colors.black, bg = colors.red, callback = function()
       window.delete = true
     end
   }
