@@ -6,17 +6,17 @@ dotos.log("[.ui] The DoT UI is now starting")
 local term = require("term")
 local buf = require("dotui.buffer")
 
--- shared surfaces
-local surf = require("dotui.surface")
-local surfaces = surf.getSurfaceTable()
+-- shared windows
+local surf = require("dotui.window")
+local windows = surf.getWindowTable()
 
 local master_surf = buf.new(term.getSize())
 
 local function findOverlap(x, y)
-  for i=1, #surfaces, 1 do
-    if x >= surfaces[i].x and x <= surfaces[i].x + surfaces[i].w - 1 and
-        y >= surfaces[i].y and y <= surfaces[i].y + surfaces[i].h - 1 then
-      return i, surfaces[i]
+  for i=1, #windows, 1 do
+    if x >= windows[i].x and x <= windows[i].x + windows[i].w - 1 and
+        y >= windows[i].y and y <= windows[i].y + windows[i].h - 1 then
+      return i, windows[i]
     end
   end
 end
@@ -24,7 +24,7 @@ end
 -- load the main desktop
 dotos.spawn(assert(loadfile("/dotos/dotui/desktop.lua")), "desktop")
 
--- signals to send only to the focused surface
+-- signals to send only to the focused window
 local focused_only = {
   mouse_click = true,
   mouse_drag = true,
@@ -37,26 +37,26 @@ local focused_only = {
 
 local offsetX, offsetY = 0, 0
 while true do
-  for i=#surfaces, 1, -1 do
-    if surfaces[i].delete then
-      table.remove(surfaces, i)
+  for i=#windows, 1, -1 do
+    if windows[i].delete then
+      table.remove(windows, i)
     else
-      surfaces[i].buffer:blit(master_surf, surfaces[i].x, surfaces[i].y)
+      windows[i].buffer:blit(master_surf, windows[i].x, windows[i].y)
     end
   end
   --master_surf:draw(1, 1)
   local sig = table.pack(coroutine.yield())
   if sig.n > 0 then
-    local target = surfaces[1]
+    local target = windows[1]
     if sig[1] == "term_resize" then
       master_surf:resize(term.getSize())
     elseif sig[1] == "mouse_click" then
-      local i, surface = findOverlap(sig[3], sig[4])
+      local i, window = findOverlap(sig[3], sig[4])
       if i then
-        if i ~= 1 and not surface.keepInBackground then
-          table.remove(surfaces, i)
-          table.insert(surfaces, 1, surface)
-          target = surface
+        if i ~= 1 and not window.keepInBackground then
+          table.remove(windows, i)
+          table.insert(windows, 1, window)
+          target = window
         end
       else
         target = desktop
@@ -81,8 +81,8 @@ while true do
       if focused_only[sig[1]] then
         target:sendSignal(sig)
       else
-        for i=1, #surfaces, 1 do
-          surfaces[i]:sendSignal(sig)
+        for i=1, #windows, 1 do
+          windows[i]:sendSignal(sig)
         end
       end
     end

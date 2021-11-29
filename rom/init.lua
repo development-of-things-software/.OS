@@ -102,8 +102,14 @@ function checkArg(n, have, ...)
     end
   end
   if not check(...) then
-    error(string.format("bad argument #%d (expected %s, got %s)",
-      n, table.concat({...}, " or "), have), 2)
+    local aname
+    if type(n) == "number" then
+      aname = string.format("%#d", n)
+    else
+      aname = string.format("'%s'", n)
+    end
+    error(string.format("bad argument %s (expected %s, got %s)",
+      aname, table.concat({...}, " or "), have), 2)
   end
 end
 
