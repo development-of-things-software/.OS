@@ -25,7 +25,7 @@ function element:find(x, y)
   else
     for k, child in ipairs(self.children) do
       if x >= child.x and y >= child.y and x <= child.x + child.w - 1 and
-          y <= child.x + child.h - 1 then
+          y <= child.y + child.h - 1 then
         local f = child:find(x - child.x + 1, y - child.y + 1)
         if f then return f end
       end
@@ -60,7 +60,7 @@ function element:draw(xoff, yoff)
   if self.text then
     local text
     if self.wrap then
-      text = textutils.wordwrap(self.text, w, h)
+      text = textutils.wrap(self.text, w, h)
     else
       text = {self.text:sub(1, w)}
     end
@@ -196,10 +196,48 @@ function window:pollSignal()
   return table.remove(self.queue, 1)
 end
 
+function window:addPage(id, page)
+  checkArg(1, id, "string")
+  checkArg(2, page, "table")
+  self.pages[id] = page
+  if not self.page then self.page = id end
+end
+
+function window:drawPage(id)
+  checkArg(1, id, "string")
+  self.pages[id]:draw()
+end
+
+function window:setPage(id)
+  checkArg(1, id, "string")
+  self.page = id
+end
+
+function window:draw()
+  self:drawPage(self.page)
+  if self.pages.titlebar then self:drawPage("titlebar") end
+end
+
+function window:findInPage(name, x, y)
+  checkArg(1, name, "string")
+  checkArg(2, x, "number")
+  checkArg(3, y, "number")
+  return self.pages[name]:find(x - self.pages[name].x + 1,
+    y - self.pages[name].y + 1)
+end
+
+function window:find(x, y)
+  checkArg(1, x, "number")
+  checkArg(2, y, "number")
+  return self:findInPage(self.page, x, y) or
+    self.pages.titlebar and self:findInPage("titlebar", x, y)
+end
+
 -- returns the created window
 function lib.window.register(x, y, surface)
   local win = setmetatable({x=x, y=y, w=surface.w, h=surface.h,
-    buffer=surface, queue={}}, {__index=window})
+    buffer=surface, queue={}, pages = {}, pid=dotos.getpid()},
+    {__index=window})
   table.insert(windows, 1, win)
   return win
 end
@@ -215,7 +253,7 @@ function lib.window.create(x, y, w, h)
     w, h = math.floor(w * tw + 0.5), math.floor(w * th + 0.5)
   end
   local surface = surf.new(w, h)
-  return surface, lib.window.register(x, y, surface)
+  return lib.window.register(x, y, surface)
 end
 
 -- common utilities
@@ -229,58 +267,56 @@ function lib.util.basicWindow(x, y, w, h, title)
   checkArg(5, title, "string", "nil")
   title = title or "New Window"
   if #title > (w - 2) then title = title:sub(w - 5) .. "..." end
-  local surface, window = lib.window.create(x, y, w, h)
-  local winbase = lib.UIPage:new {
-    x = 1, y = 1, w = surface.w, h = surface.h,
-    fg = colors.black, bg = colors.black, surface = surface
-  }
+  local window = lib.window.create(x, y, w, h)
   local titlebar = lib.UIPage:new {
-    x = 1, y = 1, w = surface.w, h = 1,
-    fg = colors.white, bg = colors.gray, text = title
+    x = 1, y = 1, w = window.w, h = 1,
+    fg = colors.white, bg = colors.blue, text = title, surface = window.buffer
   }
   local close = lib.Clickable:new {
-    x = surface.w, y = 1, w = 1, h = 1, text = "X",
+    x = window.w, y = 1, w = 1, h = 1, text = "X",
     fg = colors.black, bg = colors.lightGray, callback = function()
       window.delete = true
     end
   }
   local body = lib.UIPage:new {
-    x = 1, y = 2, w = surface.w, h = surface.h - 1,
-    fg = colors.black, bg = colors.white
+    x = 1, y = 2, w = window.w, h = window.h - 1,
+    fg = colors.black, bg = colors.white, surface = window.buffer
   }
-  winbase:addChild(titlebar)
   titlebar:addChild(close)
-  winbase:addChild(body)
-  return winbase, body, surface, window
+  window:addPage("titlebar", titlebar)
+  window:addPage("base", body)
+  window:setPage("base")
+  return window, body
 end
 
 function lib.util.prompt(text, opts)
   checkArg(1, text, "string")
   checkArg(2, opts, "table")
-  local wb, base, surface, window = lib.util.basicWindow(5, 4, 16, 5)
+  local window, base = lib.util.basicWindow(5, 4,
+    24, math.ceil(#text / 24) + 3,
+    opts.title or "Prompt")
   local result = ""
   base:addChild(lib.Label:new {
-    x = 2, y = 1, w = surface.w - 2, h = surface.h - 1,
+    x = 2, y = 1, w = window.w - 2, h = window.h - 1,
     text = text, fg = colors.black, bg = colors.white, wrap = true
   })
-  local x = surface.w
+  local x = window.w + 1
   for i=#opts, 1, -1 do
     x = x - #opts[i] - 1
     base:addChild(lib.Clickable:new {
-      x = x, y = 4, w = #opts[i], h = 1,
+      x = x, y = window.h - 1, w = #opts[i], h = 1,
       fg = colors.black, bg = colors.lightGray, callback = function()
         result = opts[i]
         window.delete = true
-        os.reboot()
       end, text = opts[i]
     })
   end
   local lastWasDrag
   while not window.delete do
-    wb:draw()
+    window:draw()
     local sig = window:receiveSignal()
     if sig[1] == "mouse_click" then
-      local element = wb:find(sig[3], sig[4])
+      local element = window:find(sig[3], sig[4])
       if element then
         element:callback()
       end

@@ -2,6 +2,7 @@
 
 local threads = {}
 local current = 0
+local max = 0
 
 local default_stream = {
   readAll = function() end,
@@ -30,7 +31,9 @@ function dotos.spawn(func, name, root)
     pwd = parent.pwd or "/",
     root = root or parent.root or "/"
   }
-  threads[#threads+1] = thread
+  max = max + 1
+  threads[max] = thread
+  return max
 end
 
 function dotos.getpwd()
@@ -42,7 +45,17 @@ function dotos.getroot()
 end
 
 function dotos.getio(field)
+  checkArg(1, field, "string")
   return (threads[current] or default_thread).io[field] or default_stream
+end
+
+function dotos.running(id)
+  checkArg(1, id, "number")
+  return not not threads[id]
+end
+
+function dotos.getpid()
+  return current
 end
 
 function dotos.exit()
@@ -61,10 +74,12 @@ local function loop()
       signal = {n=0}
     end
     for k, v in pairs(threads) do
+      current = k
       local ok, res = coroutine.resume(v.coro, table.unpack(signal, 1,
         signal.n))
       if not ok then
         dotos.log("[.os] thread %s failed: %s", k, res)
+        os.queueEvent("thread_died", k, res)
         threads[k] = nil
       end
     end

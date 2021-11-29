@@ -16,7 +16,7 @@ function lib.wrap(text, w)
   local lines = {""}
   local i = 1
   for c in text:gmatch(".") do
-    if #lines[i] >= w then
+    if c == "\n" or #lines[i] >= w then
       i = i + 1
       lines[i] = ""
     end
@@ -40,6 +40,10 @@ function lib.wordwrap(text, w)
       else
         lines[i] = lines[i] .. word
         word = c
+      end
+      if c == "\n" then
+        i = i + 1
+        lines[i] = ""
       end
     else
       word = word .. c

@@ -51,6 +51,7 @@ local w, h = term.getSize()
 local logbuf = {}
 function dotos.log(fmt, ...)
   local msg = string.format(fmt, ...)
+  msg = string.format("[%s] %s", os.date("%H:%M:%S", os.epoch("utc")), msg)
   logbuf[#logbuf+1] = msg
   if dotos.show_logs then
     for line in msg:gmatch("[^\n]+") do
@@ -66,6 +67,12 @@ function dotos.log(fmt, ...)
   if #logbuf > 4096 then
     table.remove(logbuf, 1)
   end
+end
+
+-- return a protected copy of the log buffer
+function dotos.getlogs()
+  return setmetatable({}, {__index = function(t,k) return logbuf[k] or "" end,
+    __len = function() return #logbuf end, __metatable = {}})
 end
 
 local function perr(err)
