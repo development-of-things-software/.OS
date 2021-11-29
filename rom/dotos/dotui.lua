@@ -59,6 +59,7 @@ while true do
     local target = windows[1]
     if sig[1] == "term_resize" then
       master_surf:resize(term.getSize())
+      windows[#windows].buffer:resize(term.getSize())
     elseif sigtypes.mouse[sig[1]] then
       if windows[1].dragging then
         target = windows[1]

@@ -13,7 +13,7 @@ local base = dotui.UIPage:new {
 }
 
 base:addChild(dotui.Label:new {
-  x = 1, y = window.h, w = window.w, h = 1,
+  x = 1, y = 0, w = #os.version(), h = 1,
   fg = colors.gray, bg = colors.lightBlue, text = os.version()
 })
 
@@ -38,35 +38,6 @@ local menubtn = dotui.Clickable:new {
 
 base:addChild(menubar)
 menubar:addChild(menubtn)
-
---[[ menu entries
-menu:addChild(dotui.Clickable:new {
-  x = 1, y = 1, w = 16, h = 1, bg = colors.gray, fg = colors.white,
-  text = "Restart", callback = function()
-    menu.hidden = not menu.hidden
-    local res = dotui.util.prompt("Are you sure you want to reboot?",
-      {"Yes", "No", title = "Restart?"})
-    if res == "Yes" then
-      os.reboot()
-    end
-  end
-})
-
-local function loadApp(file)
-  local ok, err = loadfile(file)
-  if not ok then
-    dotui.util.prompt(err, {"OK", title = "Application Error"})
-  end
-  dotos.spawn(ok, file)
-end
-
-menu:addChild(dotui.Clickable:new {
-  x = 1, y = 2, w = 16, h = 1, bg = colors.gray, fg = colors.white,
-  text = "System Logs", callback = function()
-    menu.hidden = true
-    loadApp("/dotos/dotui/syslog.lua")
-  end
-})]]
 
 local surface = window.buffer
 while true do

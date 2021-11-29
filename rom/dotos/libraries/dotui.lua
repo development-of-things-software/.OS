@@ -44,14 +44,10 @@ end
 local function computeCoordinates(self, xoff, yoff)
   xoff = xoff or 0
   yoff = yoff or 0
-  return
-    self.x + xoff,
-    self.y + yoff,
-    self.w, self.h
-    --math.ceil(self.x * self.surface.w) + xoff,
-    --math.ceil(self.y * self.surface.h) + yoff,
-    --math.ceil(self.w * self.surface.w),
-    --math.ceil(self.h * self.surface.h)
+  local x, y, w, h = self.x, self.y, self.w, self.h
+  if x < 1 then x = self.surface.w + x end
+  if y < 1 then y = self.surface.h + y end
+  return x + xoff, y + yoff, w, h
 end
 
 function element:draw(xoff, yoff)
