@@ -11,6 +11,10 @@ end
 
 os.exit = dotos.exit
 
+function os.version()
+  return ".OS 0.1"
+end
+
 -- print()
 function _G.print(...)
   local args = table.pack(...)

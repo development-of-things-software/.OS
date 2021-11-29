@@ -4,13 +4,13 @@
 dotos.log("[.ui] The DoT UI is now starting")
 
 local term = require("term")
-local buf = require("dotui.buffer")
+local surf = require("surface")
 
 -- shared windows
-local surf = require("dotui.window")
-local windows = surf.getWindowTable()
+local win = require("dotui").window
+local windows = win.getWindowTable()
 
-local master_surf = buf.new(term.getSize())
+local master_surf = surf.new(term.getSize())
 
 local function findOverlap(x, y)
   for i=1, #windows, 1 do
@@ -44,7 +44,7 @@ while true do
       windows[i].buffer:blit(master_surf, windows[i].x, windows[i].y)
     end
   end
-  --master_surf:draw(1, 1)
+  master_surf:draw(1, 1)
   local sig = table.pack(coroutine.yield())
   if sig.n > 0 then
     local target = windows[1]
@@ -64,10 +64,10 @@ while true do
     end
     if sig[1] == "mouse_drag" then
       if target.dragging then
-        target.x = sig[3] - offsetX, sig[4] - offsetY
+        target.x, target.y = sig[3] - offsetX, sig[4] - offsetY
       else
-        offsetX = sig[3]
-        offsetY = sig[4]
+        offsetX = sig[3] - target.x
+        offsetY = sig[4] - target.y
       end
     elseif sig[1] == "mouse_up" then
       target.dragging = false

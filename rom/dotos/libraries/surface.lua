@@ -9,23 +9,35 @@ local colors = require("colors")
 
 local s = {}
 
-local function into_buffer(buf, x, y, text)
+local function into_buffer(buf, x, y, text, xoff)
+  if not text then return end
   if not buf[y] then return end
-  if #buf[y] < x + #text then text = text:sub(-(x + #text - #buf[y])) end
+  xoff = xoff or 0
+  text = text:sub(xoff + 1)
+  text = text:sub(1, #buf[y] - x + 1)
   if x < 1 then
     text = text:sub(-x)
   end
-  buf[y] = buf[y]:sub(0, x) .. text .. buf[y]:sub(x + #text)
+  local olen = #buf[y]
+  buf[y] = (buf[y]:sub(0, math.max(0,x-1)) .. text .. buf[y]:sub(x + #text))
+    :sub(1, olen)
 end
 
-function s:blit(parent, x, y)
+function s:blit(parent, x, y, xoff, yoff)
   checkArg(1, parent, "table")
   checkArg(2, x, "number")
   checkArg(3, y, "number")
+  checkArg(4, xoff, "number", "nil")
+  checkArg(5, yoff, "number", "nil")
+  xoff = xoff or 0
+  yoff = yoff or 0
   for i=1, self.h, 1 do
-    into_buffer(parent.buffer_fg, x, y + i - 1, self.buffer_fg[i])
-    into_buffer(parent.buffer_bg, x, y + i - 1, self.buffer_bg[i])
-    into_buffer(parent.buffer_text, x, y + i - 1, self.buffer_text[i])
+    into_buffer(parent.buffer_fg, x, y + i - 1,
+      self.buffer_fg[i + yoff], xoff)
+    into_buffer(parent.buffer_bg, x, y + i - 1,
+      self.buffer_bg[i + yoff], xoff)
+    into_buffer(parent.buffer_text, x, y + i - 1,
+      self.buffer_text[i + yoff], xoff)
   end
   return self
 end
@@ -49,14 +61,16 @@ function s:fill(x, y, w, h, ch, fg, bg)
   checkArg(6, fg, "number", self.foreground and "nil")
   checkArg(7, bg, "number", self.background and "nil")
   if w == 0 or h == 0 then return self end
-  ch = (ch or " "):sub(1,1):rep(w)
   self.foreground = fg or self.foreground
   self.background = bg or self.background
-  fg = colors.toBlit(fg or self.foreground):rep(w)
-  bg = colors.toBlit(bg or self.background):rep(w)
-  into_buffer(self.buffer_text, x, y, ch)
-  into_buffer(self.buffer_fg, x, y, fg)
-  into_buffer(self.buffer_bg, x, y, bg)
+  ch = (ch or " "):sub(1,1):rep(w)
+  fg = colors.toBlit(self.foreground):rep(w)
+  bg = colors.toBlit(self.background):rep(w)
+  for i=1, h, 1 do
+    into_buffer(self.buffer_text, x, y + i - 1, ch)
+    into_buffer(self.buffer_fg, x, y + i - 1, fg)
+    into_buffer(self.buffer_bg, x, y + i - 1, bg)
+  end
   return self
 end
 
@@ -135,9 +149,9 @@ function s:resize(w, h)
   self.h = h
 end
 
-local buf = {}
+local surf = {}
 
-function buf.new(w, h)
+function surf.new(w, h)
   checkArg(1, w, "number")
   checkArg(2, h, "number")
   local new = setmetatable({
@@ -156,4 +170,4 @@ function buf.new(w, h)
   return new
 end
 
-return buf
+return surf
