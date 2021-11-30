@@ -63,4 +63,16 @@ function lib.wordwrap(text, w)
   return lines
 end
 
+function lib.padRight(text, w)
+  checkArg(1, text, "string")
+  checkArg(2, w, "number")
+  return text .. (" "):rep(w - #text)
+end
+
+function lib.padLeft(text, w)
+  checkArg(1, text, "string")
+  checkArg(2, w, "number")
+  return (" "):rep(w - #text) .. text
+end
+
 return lib

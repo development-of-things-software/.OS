@@ -70,6 +70,7 @@ function element:draw(xoff, yoff)
   xoff = xoff or 0
   yoff = yoff or 0
   for k, v in pairs(self.children) do
+    v.surface = v.surface or self.surface
     v:draw(xoff + self.x - 1, yoff + self.y - 1)
   end
 end
@@ -87,8 +88,6 @@ local function base_init(self, args, needsText)
   else
     checkArg("text", args.text, "string", "nil")
   end
-  -- X, Y, width, and height are 0..1 and proportional to the surface
-  -- this allows much easier scaling
   self.x = args.x
   self.y = args.y
   self.w = args.w
@@ -262,6 +261,54 @@ function lib.Selector:find(x, y, fscr)
   if y > #self.items or fscr then return end
   if self.exclusive then self.selected = {} end
   self.selected[y] = not self.selected[y]
+end
+
+lib.Dropdown = lib.UIElement:new()
+-- dropdown: selection menu hidden behind a button
+function lib.Dropdown:init(args)
+  checkArg(1, args, "table")
+  checkArg("items", args.items, "table", "nil")
+  args.fg = args.fg or colorscheme.dropdown_text_default
+  args.bg = args.bg or colorscheme.dropdown_bg_default
+  base_init(self, args)
+  self.items = args.items or {}
+  self.selected = args.selected or 0
+  self.menuHidden = true
+  self.button = 1
+end
+
+function lib.Dropdown:addItem(text)
+  checkArg(1, text, "string")
+  self.items[#self.items+1] = text
+end
+
+function lib.Dropdown:draw(xoff, yoff)
+  local x, y, w, h = computeCoordinates(self, xoff, yoff)
+  self.surface:set(x, y, textutils.padRight(self.text or "Select something",
+    self.w - 2):sub(1, self.w - 2) .. " \31",
+    self.fcolor, self.bcolor)
+  if not self.menuHidden then
+    for i=1, #self.items, 1 do
+      local text = textutils.padRight(self.items[i], w)
+      if i == self.selected then
+        self.surface:set(x, y + i, text, colorscheme.selector_selected_fg,
+          colorscheme.selector_selected_bg)
+      else
+        self.surface:set(x, y + i, text, self.fcolor, self.bcolor)
+      end
+    end
+  end
+end
+
+function lib.Dropdown:find(x, y, fscr)
+  if fscr then return end
+  if y == 1 then
+    self.menuHidden = not self.menuHidden
+  elseif not self.menuHidden then
+    self.selected = y - 1
+    self.text = self.items[self.selected] or self.text
+    self.menuHidden = true
+  end
 end
 
 -- window management

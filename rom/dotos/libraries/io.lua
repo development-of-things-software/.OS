@@ -252,6 +252,16 @@ function io.read(...)
   return io.stdin:read(...)
 end
 
+function io.lines(...)
+  local args = table.pack(...)
+  local f = io.stdin
+  if type(args[1]) == "table" then f = table.remove(args, 1) end
+  args[1] = args[1] or "l"
+  return function()
+    return f:read(table.unpack(args, 2, args.n))
+  end
+end
+
 function io.write(...)
   return io.stdout:write(...)
 end

@@ -22,11 +22,25 @@ local lib = {}
 
 function lib.load(file)
   checkArg(1, file, "string")
-  local handle = assert(io.open(file, "r"))
+  local handle, err = io.open(file, "r")
+  if not handle then return {}, err end
   local cfg = {}
   for line in handle:lines() do
+    local k, v = unserialize(line)
+    if k and v then cfg[k] = v end
   end
+  handle:close()
+  return cfg
 end
 
-function lib.save(file)
+function lib.save(file, cfg)
+  checkArg(1, file, "string")
+  checkArg(2, cfg, "table")
+  local handle = assert(io.open(file, "w"))
+  for k,v in pairs(cfg) do
+    handle:write(serialize(k,v))
+  end
+  handle:close()
 end
+
+return lib
