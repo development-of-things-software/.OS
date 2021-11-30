@@ -29,7 +29,8 @@ local menubtn = dotui.Clickable:new {
   w = 6, h = 1,
   callback = function()
     if not dotos.running(menupid) then
-      menupid = dotui.util.loadApp(".menu", "/dotos/dotui/menu.lua") or 0
+      menupid = dotui.util.loadApp(".menu", "/dotos/interfaces/dotui/menu.lua")
+        or 0
     else
       dotos.kill(menupid)
     end

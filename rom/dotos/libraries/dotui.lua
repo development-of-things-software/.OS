@@ -123,6 +123,8 @@ function lib.Scrollable:init(args)
   self.scrollX = 0
   self.scrollY = 0
   self.child = args.child
+  self.child.surface = self.child.surface or
+    surf.new(self.child.w, self.child.h)
 end
 
 function lib.Scrollable:draw(xoff, yoff)
@@ -130,6 +132,7 @@ function lib.Scrollable:draw(xoff, yoff)
   self.child:draw()
   -- blit surface
   local x, y, w, h = computeCoordinates(self, xoff, yoff)
+  self.surface:fill(x, y, w, h, " ", self.fcolor, self.bcolor)
   self.child.surface:blit(self.surface, x - self.scrollX, y - self.scrollY)
 end
 
@@ -240,6 +243,7 @@ end
 
 function lib.Selector:draw(xoff, yoff)
   local x, y, w, h = computeCoordinates(self, xoff, yoff)
+  self.surface:fill(x, y, w, h, " ", self.fcolor, self.bcolor)
   for i=1, #self.items, 1 do
     if self.selected[i] then
       self.surface:set(x, y+i-1, "\7", colorscheme.selector_selected_fg,
@@ -371,7 +375,7 @@ function lib.util.basicWindow(x, y, w, h, title)
   checkArg(4, h, "number")
   checkArg(5, title, "string", "nil")
   title = title or "New Window"
-  if #title > (w - 2) then title = title:sub(w - 5) .. "..." end
+  if #title > (w - 4) then title = title:sub(w - 7) .. "..." end
   local window = lib.window.create(x, y, w, h)
   local titlebar = lib.UIPage:new {
     x = 1, y = 1, w = window.w, h = 1,
@@ -379,7 +383,7 @@ function lib.util.basicWindow(x, y, w, h, title)
     text = title, surface = window.buffer
   }
   local close = lib.Clickable:new {
-    x = window.w, y = 1, w = 1, h = 1, text = "X",
+    x = window.w - 3, y = 1, w = 3, h = 1, text = " \215 ",
     fg = colorscheme.textcol_close, bg = colorscheme.bg_close,
     callback = function()
       window.delete = true
@@ -419,7 +423,7 @@ function lib.util.genericWindowLoop(win, handlers)
           element.scrollY = math.max(0, math.min(element.child.h - element.h,
             element.scrollY + signal[2]))
         end
-      else
+      elseif signal[1] == "mouse_click" then
         local element = win:find(signal[3], signal[4])
         focusedElement = element or focusedElement
         if element then

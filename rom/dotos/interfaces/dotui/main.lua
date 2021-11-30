@@ -5,6 +5,7 @@ dotos.log("[.ui] The DoT UI is now starting")
 
 local term = require("term")
 local surf = require("surface")
+local colors = require("dotui.colors")
 local sigtypes = require("sigtypes")
 
 -- shared windows
@@ -25,7 +26,7 @@ end
 -- load the main desktop
 local deskpid = 0
 local function spawn_desktop()
-  deskpid = dotos.spawn(assert(loadfile("/dotos/dotui/desktop.lua")),
+  deskpid = dotos.spawn(assert(loadfile("/dotos/interfaces/dotui/desktop.lua")),
     "desktop")
 end
 dotos.show_logs = true
@@ -50,6 +51,10 @@ while true do
     if windows[i].delete or not dotos.running(windows[i].pid or 0) then
       table.remove(windows, i)
     else
+      if not windows[i].noDropShadow then
+        master_surf:fill(windows[i].x + 1, windows[i].y + 1, windows[i].w,
+          windows[i].h, " ", 1, colors.drop_shadow)
+      end
       windows[i].buffer:blit(master_surf, windows[i].x, windows[i].y)
     end
   end

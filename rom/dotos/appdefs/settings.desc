@@ -1,0 +1,5 @@
+{
+  name = "System Settings",
+  procname = ".systemsettings",
+  exec = "/dotos/apps/settings.lua"
+}

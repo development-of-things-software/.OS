@@ -23,4 +23,6 @@ return {
   selector_selected_bg = colors.blue,
   selector_unselected_fg = colors.black,
   selector_unselected_bg = colors.lightGray,
+  -- drop shadow color
+  drop_shadow = colors.gray
 }

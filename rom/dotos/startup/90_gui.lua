@@ -1,5 +1,5 @@
 -- start the .OS .UI --
 
 dotos.spawn(function()
-  dofile("/dotos/dotui.lua")
+  dofile("/dotos/interfaces/dotui/main.lua")
 end, ".ui")

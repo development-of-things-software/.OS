@@ -29,7 +29,8 @@ function dotos.spawn(func, name, root)
       stderr = parent.io.stderr or default_stream,
     },
     pwd = parent.pwd or "/",
-    root = root or parent.root or "/"
+    root = root or parent.root or "/",
+    name = name
   }
   max = max + 1
   threads[max] = thread
@@ -73,7 +74,7 @@ function dotos.listthreads()
     t[#t+1] = {id=k, name=v.name}
   end
   table.sort(t, function(a,b)
-    return a.id > b.id
+    return a.id < b.id
   end)
   return t
 end

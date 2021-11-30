@@ -17,8 +17,6 @@ local scroll = dotui.Scrollable:new {
   child = logtext,
 }
 
-logtext.surface = surface.new(window.w, logtext.h)
-
 local function buildLogUI()
   logtext.text = ""
   logtext.h = 0

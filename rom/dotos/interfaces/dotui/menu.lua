@@ -7,6 +7,7 @@ local window = dotui.window.create(1, 2, 16, 4)
 local base = dotui.Menu:new {
   x = 1, y = 1, w = window.w, h = window.h,
 }
+window.noDropShadow = true
 window:addPage("main", base)
 
 local desktopFilePaths = {
@@ -15,7 +16,7 @@ local desktopFilePaths = {
 }
 
 base:addItem("Shut Down", function()
-  dotui.util.loadApp(".shutdown", "/dotos/dotui/shutdown.lua")
+  dotui.util.loadApp(".shutdown", "/dotos/interfaces/dotui/shutdown.lua")
   window.delete = true
 end)
 
