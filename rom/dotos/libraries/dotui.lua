@@ -285,7 +285,7 @@ end
 function lib.Dropdown:draw(xoff, yoff)
   local x, y, w, h = computeCoordinates(self, xoff, yoff)
   self.surface:set(x, y, textutils.padRight(self.text or "Select something",
-    self.w - 2):sub(1, self.w - 2) .. " \31",
+    self.w - 2):sub(1, self.w - 2) .. (self.menuHidden and " \31" or " \30"),
     self.fcolor, self.bcolor)
   if not self.menuHidden then
     for i=1, #self.items, 1 do
