@@ -16,7 +16,7 @@ local function into_buffer(buf, x, y, text, xoff)
   text = text:sub(xoff + 1)
   text = text:sub(1, #buf[y] - x + 1)
   if x < 1 then
-    text = text:sub(-x + 1)
+    text = text:sub(-x + 2)
     x = 1
   end
   local olen = #buf[y]

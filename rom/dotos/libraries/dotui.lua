@@ -148,8 +148,12 @@ function lib.Scrollable:draw(xoff, yoff)
 end
 
 function lib.Scrollable:find(x, y, fscr)
-  local element = self.child:find(x + self.scrollX,
-    y + self.scrollY, fscr)
+  local element
+  if x >= self.child.x and y >= self.child.y and
+      x < self.child.x + self.child.w and y < self.child.x + self.child.h then
+    element = self.child:find(x + self.scrollX,
+      y + self.scrollY, fscr)
+  end
   if fscr then element = element or self end
   return element
 end
