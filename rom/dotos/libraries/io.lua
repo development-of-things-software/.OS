@@ -238,9 +238,6 @@ function io.open(file, mode)
   checkArg(1, file, "string")
   checkArg(2, mode, "string", "nil")
   mode = mode or "r"
-  if not fs.exists(file) then
-    return nil, file .. ": no such file or directory"
-  end
   local handle, err = fs.open(file, mode)
   if not handle then
     return nil, file .. ": " .. err

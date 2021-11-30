@@ -275,6 +275,7 @@ function lib.Dropdown:init(args)
   self.selected = args.selected or 0
   self.menuHidden = true
   self.button = 1
+  self.callback = function() end
 end
 
 function lib.Dropdown:addItem(text)
@@ -308,6 +309,9 @@ function lib.Dropdown:find(x, y, fscr)
     self.selected = y - 1
     self.text = self.items[self.selected] or self.text
     self.menuHidden = true
+    return self
+  elseif y == 1 then
+    return self
   end
 end
 

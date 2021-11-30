@@ -51,4 +51,10 @@ end
 
 dotui.util.genericWindowLoop(window)
 
+for k, v in pairs(settingsTree) do
+  cfg[k] = v[v.dropdown.selected]
+end
+
+settings.save("/.dotos.cfg", cfg)
+
 dotos.exit()

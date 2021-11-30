@@ -3,13 +3,14 @@
 local function serialize(k, v)
   checkArg(1, k, "string")
   checkArg(2, v, "string", "number", "boolean", "nil")
-  return string.format("%s=%q", k, v)
+  return string.format("%s=%q\n", k, v)
 end
 
 local function coerce(k)
-  if k == true then return true end
-  if k == false then return false end
-  if k == nil then return nil end
+  if k == "true" then return true end
+  if k == "false" then return false end
+  if k == "nil" then return nil end
+  if k:sub(1,1) == '"' then k = k:sub(2,-2) end
   return tonumber(k) or k
 end
 
