@@ -1,0 +1,5 @@
+{
+  name = "System Logs",
+  procname = ".syslog",
+  exec = "/dotos/apps/syslog.lua"
+}

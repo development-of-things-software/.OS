@@ -51,8 +51,10 @@ function lib.wordwrap(text, w)
     else
       while #line > 0 do
         local chunk = line:sub(1, w)
-        local offset = chunk:reverse():find(lib.wordbreak) or 1
-        chunk = chunk:sub(1, -offset)
+        if #chunk == w then
+          local offset = chunk:reverse():find(lib.wordbreak) or 1
+          chunk = chunk:sub(1, -offset)
+        end
         line = line:sub(#chunk + 1)
         lines[#lines+1] = chunk
       end

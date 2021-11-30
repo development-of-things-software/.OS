@@ -27,10 +27,11 @@ local menubtn = dotui.Clickable:new {
   x = 1,
   y = 1,
   w = 6, h = 1,
-  bg = colors.lightGray, fg = colors.black,
   callback = function()
     if not dotos.running(menupid) then
       menupid = dotui.util.loadApp(".menu", "/dotos/dotui/menu.lua") or 0
+    else
+      dotos.kill(menupid)
     end
   end,
   text = " Menu "
@@ -50,6 +51,8 @@ while true do
     local element = base:find(sig[3], sig[4])
     if element then
       element:callback()
+    else
+      dotos.kill(menupid)
     end
   elseif sig[1] == "thread_died" then
     dotui.util.prompt(sig[3], {"OK",

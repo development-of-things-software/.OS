@@ -58,8 +58,24 @@ function dotos.getpid()
   return current
 end
 
+function dotos.kill(id)
+  checkArg(1, id, "number")
+  threads[id] = nil
+end
+
 function dotos.exit()
   threads[current] = nil
+end
+
+function dotos.listthreads()
+  local t = {}
+  for k,v in pairs(threads) do
+    t[#t+1] = {id=k, name=v.name}
+  end
+  table.sort(t, function(a,b)
+    return a.id > b.id
+  end)
+  return t
 end
 
 local function loop()

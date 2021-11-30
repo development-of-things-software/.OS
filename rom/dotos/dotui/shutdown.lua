@@ -1,13 +1,11 @@
 -- shutdown prompt --
 
 local dotui = require("dotui")
-local colors = require("colors")
 
 local window, base = dotui.util.basicWindow(3, 3, 24, 10, "Shutdown")
 
 local page = dotui.UIPage:new {
-  x = 2, y = 2, w = base.w - 2, h = base.h - 1, fg = colors.black,
-  bg = colors.white
+  x = 2, y = 2, w = base.w - 2, h = base.h - 1,
 }
 base:addChild(page)
 
@@ -26,7 +24,7 @@ local itemFunctions = {
 
 local selector = dotui.Selector:new {
   x = 2, y = 4, w = page.w, h = #items,
-  items = items, fg = colors.black, bg = colors.white,
+  items = items,
   exclusive = true
 }
 
@@ -36,7 +34,7 @@ page:addChild(selector)
 
 page:addChild( dotui.Clickable:new {
   x = page.w - 7, y = page.h - 1, w = 7, h = 1,
-  text = "Confirm", fg = colors.black, bg = colors.lightGray,
+  text = "Confirm",
   callback = function()
     for i, func in ipairs(itemFunctions) do
       if selector.selected[i] then

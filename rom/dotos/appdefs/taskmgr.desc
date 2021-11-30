@@ -1,0 +1,5 @@
+{
+  name = "Task Manager",
+  procname = ".taskmanager",
+  exec = "/dotos/apps/taskmgr.lua"
+}

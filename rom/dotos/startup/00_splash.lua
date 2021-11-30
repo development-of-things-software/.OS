@@ -1,5 +1,6 @@
 -- boot splash screen -
 
+do return end
 dotos.show_logs = nil
 
 local term = require("term")

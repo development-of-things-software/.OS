@@ -51,7 +51,8 @@ local w, h = term.getSize()
 local logbuf = {}
 function dotos.log(fmt, ...)
   local msg = string.format(fmt, ...)
-  msg = string.format("[%s] %s", os.date("%H:%M:%S", os.epoch("utc")), msg)
+  msg = string.format("[%s] %s", os.date("%H:%M:%S",
+    math.floor(os.epoch("utc") / 1000)), msg)
   logbuf[#logbuf+1] = msg
   if dotos.show_logs then
     for line in msg:gmatch("[^\n]+") do

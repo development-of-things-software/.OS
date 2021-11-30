@@ -6,6 +6,7 @@ local lerp = require("advmath").lerp
 local surf = require("surface")
 local term = require("term")
 local sigtypes = require("sigtypes")
+local colorscheme = require("dotui.colors")
 
 local function new(self, ...)
   local new = setmetatable({}, {__index = self, __metatable = {}})
@@ -19,15 +20,15 @@ end
 
 local element = {}
 element.new = new
-function element:find(x, y)
+function element:find(x, y, fscr)
   if self.hidden then return end
-  if self.clickable then
+  if self.clickable and not fscr then
     return self
   else
     for k, child in ipairs(self.children) do
       if x >= child.x and y >= child.y and x <= child.x + child.w - 1 and
           y <= child.y + child.h - 1 then
-        local f = child:find(x - child.x + 1, y - child.y + 1)
+        local f = child:find(x - child.x + 1, y - child.y + 1, fscr)
         if f then return f end
       end
     end
@@ -61,8 +62,9 @@ function element:draw(xoff, yoff)
     else
       text = {self.text:sub(1, w)}
     end
-    for i=1, #text, 1 do
-      self.surface:set(x, y+i-1, text[i], self.fg, self.bg)
+    for i=self.textScroll or 1, #text, 1 do
+      self.surface:set(x, y+i-(self.textScroll or 1), text[i] or "",
+        self.fg, self.bg)
     end
   end
   xoff = xoff or 0
@@ -105,11 +107,17 @@ lib.UIPage = lib.UIElement:new()
 
 function lib.UIPage:init(args)
   checkArg(1, args, "table")
+  args.fg = args.fg or colorscheme.textcol_default
+  args.bg = args.bg or colorscheme.bg_default
   base_init(self, args)
 end
 
 lib.Scrollable = lib.UIElement:new()
 function lib.Scrollable:init(args)
+  if args then
+    args.fg = args.fg or colorscheme.textcol_default
+    args.bg = args.bg or colorscheme.bg_default
+  end
   base_init(self, args)
   checkArg(1, args.child, "table")
   self.scrollX = 0
@@ -122,21 +130,31 @@ function lib.Scrollable:draw(xoff, yoff)
   self.child:draw()
   -- blit surface
   local x, y, w, h = computeCoordinates(self, xoff, yoff)
-  self.child.surface:blit(self.surface, x, y, self.scrollX, self.scrollY)
+  self.child.surface:blit(self.surface, x - self.scrollX, y - self.scrollY)
 end
 
-function lib.Scrollable:find(x, y)
-  return self.child:find(x + self.scrollX,
-    y + self.scrollY)
+function lib.Scrollable:find(x, y, fscr)
+  local element = self.child:find(x + self.scrollX,
+    y + self.scrollY, fscr)
+  if fscr then element = element or self end
+  return element
 end
 
 lib.Label = lib.UIElement:new()
 function lib.Label:init(args)
+  if args then
+    args.fg = args.fg or colorscheme.textcol_default
+    args.bg = args.bg or colorscheme.bg_default
+  end
   base_init(self, args, true)
 end
 
 lib.Clickable = lib.UIElement:new()
 function lib.Clickable:init(args)
+  if args then
+    args.fg = args.fg or colorscheme.clickable_text_default
+    args.bg = args.bg or colorscheme.clickable_bg_default
+  end
   base_init(self, args)
   checkArg("callback", args.callback, "function")
   self.clickable = true
@@ -151,15 +169,13 @@ function lib.Switch:init(args)
     self.switched = os.epoch("utc")
   end
   lib.Clickable.init(self, args)
-  --checkArg("activatedColor", args.activatedColor, "number")
-  --self.activatedColor = args.activatedColor
 end
 
 function lib.Switch:draw(xoff, yoff)
   local x, y, w, h = computeCoordinates(self, xoff, yoff)
   self.surface:fill(x, y, w, h, " ", self.fcolor,
-    self.state and colors.blue or colors.gray)
-  local knobWidth = math.ceil(w / 10)
+    self.state and colorscheme.switch_on or colorscheme.switch_off)
+  local knobWidth = math.ceil(w / 2)
   if self.state then
     self.surface:fill(x, y, knobWidth, self.h, " ",
       self.bcolor, self.fcolor)
@@ -171,6 +187,10 @@ end
 
 lib.Menu = lib.UIElement:new()
 function lib.Menu:init(args)
+  if args then
+    args.fg = args.fg or colorscheme.menu_text_default
+    args.bg = args.bg or colorscheme.menu_bg_default
+  end
   base_init(self, args)
   self.items = 0
 end
@@ -202,13 +222,15 @@ end
 
 lib.Selector = lib.UIElement:new()
 function lib.Selector:init(args)
+  if args then
+    args.fg = args.fg or colorscheme.textcol_default
+    args.bg = args.bg or colorscheme.bg_default
+  end
   base_init(self, args)
   self.selected = {}
   checkArg("items", args.items, "table", "nil")
   self.items = args.items or {}
   self.exclusive = not not args.exclusive
-  --checkArg("activatedColor", args.activatedColor, "number")
-  --self.activeColor = args.activatedColor
 end
 
 function lib.Selector:addItem(text)
@@ -220,18 +242,20 @@ function lib.Selector:draw(xoff, yoff)
   local x, y, w, h = computeCoordinates(self, xoff, yoff)
   for i=1, #self.items, 1 do
     if self.selected[i] then
-      self.surface:set(x, y+i-1, "\7", colors.white, colors.blue)
+      self.surface:set(x, y+i-1, "\7", colorscheme.selector_selected_fg,
+        colorscheme.selector_selected_bg)
     else
-      self.surface:set(x, y+i-1, "\7", colors.black, colors.lightGray)
+      self.surface:set(x, y+i-1, "\7", colorscheme.selector_unselected_fg,
+        colorscheme.selector_unselected_bg)
     end
     self.surface:set(x+2, y+i-1, self.items[i], self.fcolor, self.bcolor)
   end
 end
 
-function lib.Selector:find(x, y)
+function lib.Selector:find(x, y, fscr)
   checkArg(1, x, "number")
   checkArg(2, y, "number")
-  if y > #self.items then return end
+  if y > #self.items or fscr then return end
   if self.exclusive then self.selected = {} end
   self.selected[y] = not self.selected[y]
 end
@@ -285,19 +309,19 @@ function window:draw()
   if self.pages.titlebar then self:drawPage("titlebar") end
 end
 
-function window:findInPage(name, x, y)
+function window:findInPage(name, x, y, fscr)
   checkArg(1, name, "string")
   checkArg(2, x, "number")
   checkArg(3, y, "number")
   return self.pages[name]:find(x - self.pages[name].x + 1,
-    y - self.pages[name].y + 1)
+    y - self.pages[name].y + 1, fscr)
 end
 
-function window:find(x, y)
+function window:find(x, y, fscr)
   checkArg(1, x, "number")
   checkArg(2, y, "number")
-  return self:findInPage(self.page, x, y) or
-    self.pages.titlebar and self:findInPage("titlebar", x, y)
+  return self:findInPage(self.page, x, y, fscr) or
+    self.pages.titlebar and self:findInPage("titlebar", x, y, fscr)
 end
 
 -- returns the created window
@@ -351,17 +375,20 @@ function lib.util.basicWindow(x, y, w, h, title)
   local window = lib.window.create(x, y, w, h)
   local titlebar = lib.UIPage:new {
     x = 1, y = 1, w = window.w, h = 1,
-    fg = colors.white, bg = colors.blue, text = title, surface = window.buffer
+    fg = colorscheme.textcol_titlebar, bg = colorscheme.bg_titlebar,
+    text = title, surface = window.buffer
   }
   local close = lib.Clickable:new {
     x = window.w, y = 1, w = 1, h = 1, text = "X",
-    fg = colors.black, bg = colors.red, callback = function()
+    fg = colorscheme.textcol_close, bg = colorscheme.bg_close,
+    callback = function()
       window.delete = true
     end
   }
   local body = lib.UIPage:new {
     x = 1, y = 2, w = window.w, h = window.h - 1,
-    fg = colors.black, bg = colors.white, surface = window.buffer
+    fg = colorscheme.textcol_default, bg = colorscheme.bg_default,
+    surface = window.buffer
   }
   titlebar:addChild(close)
   window:addPage("titlebar", titlebar)
@@ -376,6 +403,7 @@ function lib.util.genericWindowLoop(win, handlers)
   checkArg(2, handlers, "table", "nil")
   local focusedElement
   while not win.delete do
+    if handlers and handlers.generic then pcall(handlers.generic) end
     win:draw()
     local signal = win:receiveSignal()
     if sigtypes.keyboard[signal[1]] then
@@ -385,6 +413,12 @@ function lib.util.genericWindowLoop(win, handlers)
     elseif sigtypes.mouse[signal[1]] then
       if signal[1] == "mouse_drag" then
         win.dragging = true
+      elseif signal[1] == "mouse_scroll" then
+        local element = win:find(signal[3], signal[4], true)
+        if element and element.scrollY and element.child then
+          element.scrollY = math.max(0, math.min(element.child.h - element.h,
+            element.scrollY + signal[2]))
+        end
       else
         local element = win:find(signal[3], signal[4])
         focusedElement = element or focusedElement
@@ -402,20 +436,21 @@ end
 function lib.util.prompt(text, opts)
   checkArg(1, text, "string")
   checkArg(2, opts, "table")
+  local lines = textutils.wordwrap(text, 24)
   local window, base = lib.util.basicWindow(5, 4,
-    24, math.ceil(#text / 24) + 3,
+    24, #lines + 3,
     opts.title or "Prompt")
   local result = ""
   base:addChild(lib.Label:new {
     x = 2, y = 1, w = window.w - 2, h = window.h - 1,
-    text = text, fg = colors.black, bg = colors.white, wrap = true
+    text = text, wrap = true
   })
   local x = window.w + 1
   for i=#opts, 1, -1 do
     x = x - #opts[i] - 1
     base:addChild(lib.Clickable:new {
       x = x, y = window.h - 1, w = #opts[i], h = 1,
-      fg = colors.black, bg = colors.lightGray, callback = function()
+      callback = function()
         result = opts[i]
         window.delete = true
       end, text = opts[i]
@@ -427,7 +462,7 @@ function lib.util.prompt(text, opts)
     if sig[1] == "mouse_click" then
       local element = window:find(sig[3], sig[4])
       if element then
-        element:callback()
+        element:callback(sig[2])
       end
     elseif sig[1] == "mouse_drag" then
       window.dragging = true
