@@ -7,6 +7,10 @@ local term = require("term")
 local surf = require("surface")
 local colors = require("colors")
 local sigtypes = require("sigtypes")
+local cfg = require("settings").load("/.dotos.cfg")
+
+package.loaded["dotui.colors"] =
+  dofile("/dotos/resources/dotui/colors/"..cfg.colorScheme..".lua")
 local colorscheme = require("dotui.colors")
 
 -- shared windows
@@ -60,11 +64,17 @@ while true do
   if not dotos.running(deskpid) then
     spawn_desktop()
   end
+  -- shove windows into the background that should be in the background
+  for i=1, #windows, 1 do
+    if windows[i].keepInBackground then
+      table.insert(windows, #windows, table.remove(windows, i))
+    end
+  end
   for i=#windows, 1, -1 do
     if windows[i].delete or not dotos.running(windows[i].pid or 0) then
       table.remove(windows, i)
     else
-      if not windows[i].noDropShadow then
+      if colorscheme.drop_shadow and not windows[i].noDropShadow then
         master_surf:fill(windows[i].x + 1, windows[i].y + 1, windows[i].w,
           windows[i].h, " ", 1, colorscheme.drop_shadow)
       end

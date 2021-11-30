@@ -8,7 +8,7 @@ return {
   -- default background color
   bg_default = colors.white,
   -- titlebar background colors
-  bg_titlebar = colors.blue, bg_close = colors.red,
+  bg_titlebar = colors.blue, bg_close = colors.lightRed,
   -- default foreground/background color for clickable objects
   clickable_text_default = colors.black,
   clickable_bg_default = colors.lightGray,

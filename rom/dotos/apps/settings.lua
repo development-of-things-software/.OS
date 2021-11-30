@@ -7,9 +7,9 @@ local window, base = dotui.util.basicWindow(2, 2, 30, 12, "Settings")
 
 local settingsTree = {
   keyboardLayout = {"1.16.5", "1.12.2", default = "1.16.5", idefault = 1,
-    name = "Keyboard Layout"},
-  colorScheme = {"Light", "Dark", default = "Light", idefault = 1,
-    name = "Color Scheme"}
+    name = "Keyboard Layout", type = 1},
+  colorScheme = {"Light", "Dark", "Colorful", default = "Light", idefault = 1,
+    name = "Color Scheme", type = 1}
 }
 
 local settingsOrder = {
