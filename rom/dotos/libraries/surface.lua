@@ -61,9 +61,9 @@ function s:fill(x, y, w, h, ch, fg, bg)
   checkArg(5, ch, "string", "nil")
   checkArg(6, fg, "number", self.foreground and "nil")
   checkArg(7, bg, "number", self.background and "nil")
-  if w == 0 or h == 0 then return self end
   self.foreground = fg or self.foreground
   self.background = bg or self.background
+  if w == 0 or h == 0 then return self end
   ch = (ch or " "):sub(1,1):rep(w)
   fg = colors.toBlit(self.foreground):rep(w)
   bg = colors.toBlit(self.background):rep(w)
@@ -81,9 +81,9 @@ function s:set(x, y, str, fg, bg)
   checkArg(3, str, "string")
   checkArg(4, fg, "number", self.foreground and "nil")
   checkArg(5, bg, "number", self.background and "nil")
-  if #str == 0 then return self end
   self.foreground = fg or self.foreground
   self.background = bg or self.background
+  if #str == 0 then return self end
   fg = colors.toBlit(fg or self.foreground):rep(#str)
   bg = colors.toBlit(bg or self.background):rep(#str)
   into_buffer(self.buffer_text, x, y, str)

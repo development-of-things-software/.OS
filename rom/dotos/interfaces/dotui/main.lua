@@ -5,14 +5,27 @@ dotos.log("[.ui] The DoT UI is now starting")
 
 local term = require("term")
 local surf = require("surface")
-local colors = require("dotui.colors")
+local colors = require("colors")
 local sigtypes = require("sigtypes")
+local colorscheme = require("dotui.colors")
 
 -- shared windows
 local win = require("dotui").window
 local windows = win.getWindowTable()
 
 local master_surf = surf.new(term.getSize())
+
+-- draw startup logo on the master surface for a more seamless transition
+local w,h = master_surf.w, master_surf.h
+master_surf:fill(1, 1, master_surf.w, master_surf.h, " ", colors.gray,
+  colors.lightBlue)
+master_surf:fill(math.floor(w/2) - 7, math.floor(h/2) - 1, 19, 4, " ",
+  colors.gray, colors.gray)
+master_surf:fill(math.floor(w/2) - 8, math.floor(h/2) - 2, 19, 4, " ",
+  colors.gray, colors.lightGray)
+master_surf:set(math.floor(w/2) - 7, math.floor(h/2) - 1, os.version())
+master_surf:set(math.floor(w/2) - 7, math.floor(h/2), "  by DoT Software")
+master_surf:draw(1, 1)
 
 local function findOverlap(x, y)
   for i=1, #windows, 1 do
@@ -53,7 +66,7 @@ while true do
     else
       if not windows[i].noDropShadow then
         master_surf:fill(windows[i].x + 1, windows[i].y + 1, windows[i].w,
-          windows[i].h, " ", 1, colors.drop_shadow)
+          windows[i].h, " ", 1, colorscheme.drop_shadow)
       end
       windows[i].buffer:blit(master_surf, windows[i].x, windows[i].y)
     end

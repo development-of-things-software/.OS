@@ -6,31 +6,41 @@ local colors = require("dotui.colors")
 local window, base = dotui.util.basicWindow(2, 2, 30, 12, "Task Manager")
 
 local taskmenu = dotui.Selector:new {
-  x = 2, y = 1, w = window.w, h = 1, exclusive = true,
+  x = 1, y = 1, w = window.w, h = 1, exclusive = true,
 }
 
 local scroll = dotui.Scrollable:new {
-  x = 1, y = 3, w = window.w, h = base.h - 3,
+  x = 2, y = 3, w = window.w, h = base.h - 3,
   child = taskmenu
 }
 
 -- button bar at the top of the screen
 local buttons = dotui.UIPage:new {
-  x = 1, y = 1, w = window.w, h = 2, text = "Select an action:"
+  x = 1, y = 1, w = window.w, h = 1,
+  bg = colors.clickable_bg_default
 }
 
+local threads
 base:addChild(buttons)
 buttons:addChild(dotui.Clickable:new {
-  x = window.w - 8, y = 2, w = 6, h = 1, text = " Kill ",
+  x = 2, y = 1, w = 6, h = 1, text = " Kill ",
   callback = function()
-    local answer = dotui.util.prompt("Really kill this process?",
-      {"Yes", "No", title = "Confirmation"})
+    for k in pairs(taskmenu.selected) do
+      if threads[k] then
+        local answer = dotui.util.prompt("Really kill this process?",
+          {"Yes", "No", title = "Confirmation"})
+        if answer == "Yes" then
+          dotos.kill(threads[k].id)
+        end
+        break
+      end
+    end
   end
 })
 
 local function buildTaskUI()
   taskmenu.items = {}
-  local threads = dotos.listthreads()
+  threads = dotos.listthreads()
   taskmenu.h = #threads
   for i=1, #threads, 1 do
     taskmenu:addItem(string.format("%4d  %s", threads[i].id, threads[i].name))

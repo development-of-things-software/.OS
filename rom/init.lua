@@ -112,7 +112,7 @@ function checkArg(n, have, ...)
   if not check(...) then
     local aname
     if type(n) == "number" then
-      aname = string.format("%#d", n)
+      aname = string.format("#%d", n)
     else
       aname = string.format("'%s'", n)
     end
