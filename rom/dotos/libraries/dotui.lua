@@ -121,18 +121,30 @@ function lib.Scrollable:init(args)
   checkArg(1, args.child, "table")
   self.scrollX = 0
   self.scrollY = 0
+  self.drawsurface = surf.new(self.w, self.h)
   self.child = args.child
   self.child.surface = self.child.surface or
-    surf.new(self.child.w, self.child.h)
+    surf.new(self.child.w - 1, self.child.h)
 end
 
 function lib.Scrollable:draw(xoff, yoff)
   -- render child
   self.child:draw()
-  -- blit surface
   local x, y, w, h = computeCoordinates(self, xoff, yoff)
+  -- blit surface
   self.surface:fill(x, y, w, h, " ", self.fcolor, self.bcolor)
-  self.child.surface:blit(self.surface, x - self.scrollX, y - self.scrollY)
+  self.drawsurface:fill(1, 1, self.drawsurface.w, self.drawsurface.h, " ",
+    self.fcolor, self.bcolor)
+  self.child.surface:blit(self.drawsurface, -self.scrollX + 1,
+    -self.scrollY + 1)
+  self.drawsurface:blit(self.surface, x, y)
+  -- draw scrollbar
+  self.surface:fill(w, y, 1, h, "\127", colorscheme.scrollbar_fg,
+    colorscheme.scrollbar_color)
+  local sb_y = math.floor(
+    (h - 1) * (self.scrollY / (self.child.surface.h - h)))
+  self.surface:set(w, y + sb_y, " ", colorscheme.scrollbar_color,
+    colorscheme.scrollbar_fg)
 end
 
 function lib.Scrollable:find(x, y, fscr)
@@ -166,9 +178,12 @@ end
 lib.Switch = lib.UIElement:new()
 function lib.Switch:init(args)
   checkArg(1, args, "table")
+  args.w = 3
+  args.h = 1
+  local call = args.callback
   function args.callback(self)
     self.state = not self.state
-    self.switched = os.epoch("utc")
+    if call then call(self) end
   end
   lib.Clickable.init(self, args)
 end
@@ -177,14 +192,40 @@ function lib.Switch:draw(xoff, yoff)
   local x, y, w, h = computeCoordinates(self, xoff, yoff)
   self.surface:fill(x, y, w, h, " ", self.fcolor,
     self.state and colorscheme.switch_on or colorscheme.switch_off)
-  local knobWidth = math.ceil(w / 2)
-  if self.state then
-    self.surface:fill(x, y, knobWidth, self.h, " ",
-      self.bcolor, self.fcolor)
+  if not self.state then
+    self.surface:set(x, y, " ", nil, colors.lightGray)
   else
-    self.surface.fill(x + w - knobWidth, y, w, h, " ",
-      self.bcolor, self.fcolor)
+    self.surface:set(x + 2, y, " ", nil, colors.lightGray)
   end
+end
+
+lib.Slider = lib.UIElement:new()
+function lib.Slider:init(args)
+  if args then
+    args.fg = args.fg or colorscheme.accent_color
+    args.bg = args.bg or colorscheme.bg_default
+  end
+  base_init(self, args)
+  args.max = args.max or 100
+  args.min = args.min or 0
+  checkArg("max", args.max, "number")
+  checkArg("min", args.min, "number")
+  self.max = args.max
+  self.min = args.min
+  self.pos = 1
+end
+
+function lib.Slider:find(x, y, fscr)
+  if fscr then return end
+  self.pos = x
+  self.value = math.floor((self.max - self.min) * (self.pos / self.w))
+end
+
+function lib.Slider:draw(xoff, yoff)
+  local x, y, w, h = computeCoordinates(self, xoff, yoff)
+  self.surface:fill(x, y, w, 1, "\140", self.fcolor, self.bcolor)
+  self.surface:set(x + self.pos - 1, y, " ", colorscheme.bg_default,
+    colorscheme.clickable_bg_default)
 end
 
 lib.Menu = lib.UIElement:new()
@@ -216,10 +257,11 @@ function lib.Menu:addSpacer()
   self.items = self.items + 1
   if self.items > self.h then self.h = self.items end
   local obj = lib.Label:new {
-    x = 1, y = self.items, w = self.surface.w, h = 1,
-    text = string.rep("\140", self.surface.w),
+    x = 2, y = self.items, w = self.surface.w, h = 1,
+    text = string.rep("\140", self.surface.w - 2),
     fg = self.fcolor, bg = self.bcolor
   }
+  self:addChild(obj)
 end
 
 lib.Selector = lib.UIElement:new()
@@ -457,6 +499,7 @@ function lib.util.genericWindowLoop(win, handlers)
   checkArg(1, win, "table")
   checkArg(2, handlers, "table", "nil")
   local focusedElement
+  local lastDragX, lastDragY
   while not win.delete do
     if handlers and handlers.generic then pcall(handlers.generic) end
     win:draw()
@@ -467,7 +510,14 @@ function lib.util.genericWindowLoop(win, handlers)
       end
     elseif sigtypes.mouse[signal[1]] then
       if signal[1] == "mouse_drag" then
-        win.dragging = true
+        if signal[4] == 1 then -- dragging in titlebar
+          win.dragging = true
+        else
+          local element = win:find(signal[3], signal[4])
+          if element and element.drag then
+            element:drag(sdx, sdy)
+          end
+        end
       elseif signal[1] == "mouse_scroll" then
         local element = win:find(signal[3], signal[4], true)
         if element and element.scrollY and element.child then

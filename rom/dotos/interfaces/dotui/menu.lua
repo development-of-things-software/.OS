@@ -20,7 +20,9 @@ base:addItem("Shut Down", function()
   window.delete = true
 end)
 
-window.h = 1
+base:addSpacer()
+
+window.h = 2
 for i, path in ipairs(desktopFilePaths) do
   if fs.exists(path) then
     local files = fs.list(path)

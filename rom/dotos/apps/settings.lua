@@ -16,15 +16,15 @@ local settingsOrder = {
   "keyboardLayout", "colorScheme"
 }
 
-local cfg, fail = settings.load("/.dotos.cfg")
 for k,v in pairs(settingsTree) do
-  if cfg[k] then
-    v.default = cfg[k]
+  local sys = settings.sysget(k)
+  if sys then
+    v.default = sys
     for i=1, #v, 1 do
-      if v[i] == cfg[k] then v.idefault = i break end
+      if v[i] == sys then v.idefault = i break end
     end
   else
-    cfg[k] = v.default
+    settings.sysset(k, v.default)
   end
 end
 
@@ -36,12 +36,16 @@ for i, set in ipairs(settingsOrder) do
     x = 2, y = y, w = 18, h = 1,
     text = v.name
   })
-  v.dropdown = dotui.Dropdown:new {
-    x = 20, y = y, w = 8, h = 5,
-    items = v,
-    text = v.default or "empty",
-    selected = v.idefault or 1,
-  }
+  if v.type == 1 then
+    v.dropdown = dotui.Dropdown:new {
+      x = 20, y = y, w = 8, h = 5,
+      items = v,
+      text = v.default or "empty",
+      selected = v.idefault or 1,
+    }
+  elseif v.type == 2 then
+    v.dropdown = dotui.Switch:new{}
+  end
 end
 
 -- add dropdowns separately so they get drawn on top
@@ -52,9 +56,7 @@ end
 dotui.util.genericWindowLoop(window)
 
 for k, v in pairs(settingsTree) do
-  cfg[k] = v[v.dropdown.selected]
+  settings.sysset(k, v[v.dropdown.selected])
 end
-
-settings.save("/.dotos.cfg", cfg)
 
 dotos.exit()

@@ -1,0 +1,5 @@
+{
+  name = "UI Demo",
+  procname = ".uidemo",
+  exec = "/dotos/apps/demo.lua"
+}

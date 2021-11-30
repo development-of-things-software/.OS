@@ -32,6 +32,10 @@ function s:blit(parent, x, y, xoff, yoff)
   checkArg(5, yoff, "number", "nil")
   xoff = xoff or 0
   yoff = yoff or 0
+  if y < 0 then
+    yoff = -y + 1
+    y = 1
+  end
   for i=1, self.h, 1 do
     into_buffer(parent.buffer_fg, x, y + i - 1,
       self.buffer_fg[i + yoff], xoff)

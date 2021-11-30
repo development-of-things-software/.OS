@@ -25,4 +25,7 @@ return {
   
   dropdown_text_default = colors.black,
   dropdown_bg_default = colors.lightBlue,
+
+  scrollbar_color = colors.blue,
+  scrollbar_fg = colors.white
 }
