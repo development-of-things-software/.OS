@@ -70,6 +70,13 @@ while true do
       table.insert(windows, #windows, table.remove(windows, i))
     end
   end
+  -- shove windows into the foreground that should be in the foreground
+  for i=#windows, 1, -1 do
+    if windows[i].keepOnTop then
+      table.insert(windows, 1, table.remove(windows, i))
+    end
+  end
+  -- draw windows
   for i=#windows, 1, -1 do
     if windows[i].delete or not dotos.running(windows[i].pid or 0) then
       table.remove(windows, i)

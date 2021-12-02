@@ -118,7 +118,7 @@ function lib.Scrollable:init(args)
     args.bg = args.bg or colorscheme.bg_default
   end
   base_init(self, args)
-  checkArg(1, args.child, "table")
+  checkArg("child", args.child, "table")
   self.scrollX = 0
   self.scrollY = 0
   self.drawsurface = surf.new(self.w, self.h)
@@ -137,7 +137,7 @@ function lib.Scrollable:draw(xoff, yoff)
     self.fcolor, self.bcolor)
   self.child.surface:blit(self.drawsurface, -self.scrollX + 1,
     -self.scrollY + 1)
-  self.drawsurface:blit(self.surface, x, y)
+  self.drawsurface:blit(self.surface, x - 1, y)
   -- draw scrollbar
   self.surface:fill(w, y, 1, h, "\127", colorscheme.scrollbar_fg,
     colorscheme.scrollbar_color)
@@ -554,6 +554,7 @@ function lib.util.prompt(text, opts)
     x = 2, y = 1, w = window.w - 2, h = window.h - 1,
     text = text, wrap = true
   })
+  window.keepOnTop = true
   local x = window.w + 1
   for i=#opts, 1, -1 do
     x = x - #opts[i] - 1

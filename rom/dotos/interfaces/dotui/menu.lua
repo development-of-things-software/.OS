@@ -22,6 +22,8 @@ end)
 
 base:addSpacer()
 
+window.keepOnTop = true
+
 window.h = 2
 for i, path in ipairs(desktopFilePaths) do
   if fs.exists(path) then

@@ -34,10 +34,16 @@ do
     path = fs.combine(root, path)
     local segments = split(path)
     if segments[1] == "dotos" then
-      return "/" .. fs.combine(osPath, path)
+      return fs.combine(osPath, path)
     else
-      return "/" .. path
+      return path
     end
+  end
+
+  -- override: fs.combine
+  local combine = fs.combine
+  function fs.combine(...)
+    return "/" .. combine(...)
   end
 
   -- override: fs.list
