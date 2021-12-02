@@ -79,15 +79,16 @@ local function base_init(self, args, needsText)
   checkArg(1, args, "table")
   checkArg("x", args.x, "number")
   checkArg("y", args.y, "number")
-  checkArg("w", args.w, "number")
   checkArg("h", args.h, "number")
   checkArg("fg", args.fg, "number")
   checkArg("bg", args.bg, "number")
   if needsText then
     checkArg("text", args.text, "string")
+    args.w = args.w or #args.text
   else
     checkArg("text", args.text, "string", "nil")
   end
+  checkArg("w", args.w, "number")
   self.x = args.x
   self.y = args.y
   self.w = args.w
@@ -314,6 +315,7 @@ lib.Dropdown = lib.UIElement:new()
 function lib.Dropdown:init(args)
   checkArg(1, args, "table")
   checkArg("items", args.items, "table", "nil")
+  checkArg("callbacks", args.callbacks, "table", "nil")
   args.fg = args.fg or colorscheme.dropdown_text_default
   args.bg = args.bg or colorscheme.dropdown_bg_default
   base_init(self, args)
@@ -322,6 +324,7 @@ function lib.Dropdown:init(args)
   self.menuHidden = true
   self.button = 1
   self.callback = function() end
+  self.callbacks = args.callbacks or {}
 end
 
 function lib.Dropdown:addItem(text)
@@ -340,6 +343,7 @@ function lib.Dropdown:draw(xoff, yoff)
       if i == self.selected then
         self.surface:set(x, y + i, text, colorscheme.selector_selected_fg,
           colorscheme.selector_selected_bg)
+        if self.callbacks[i] then self.callbacks[i](self) end
       else
         self.surface:set(x, y + i, text, self.fcolor, self.bcolor)
       end

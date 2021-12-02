@@ -31,6 +31,10 @@ local topbar = dotui.UIPage:new {
   x = 1, y = 1, w = base.w, h = 2, bg = colors.clickable_bg_default,
 }
 
+toboar:addChild(dotui.Dropdown:new {
+  x = 1, y = 1, text = "File"
+})
+
 local ftext = dotui.Label:new {
   x = 3, y = 1, w = base.w - 4, h = 1, text = "/"
 }
