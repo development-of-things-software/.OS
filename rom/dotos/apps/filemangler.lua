@@ -45,6 +45,7 @@ buildFileUI = function(dir)
   table.sort(files)
   fsurf.children = {}
   fsurf.h = #files
+  fsurf.selected = 0
   for i, file in ipairs(files) do
     local absolute = fs.combine(dir, file)
     local attr = fs.attributes(absolute)
@@ -56,11 +57,21 @@ buildFileUI = function(dir)
       attr.isDir and "directory" or "file     ",
       os.date("%Y/%m/%d %H:%M:%S", math.floor(attr.modified / 1000)))
     fsurf:addChild(dotui.Clickable:new {
-      x = 1, y = i, w = base.w, h = 1, callback = function()
-        if attr.isDir then
-          buildFileUI(absolute)
+      x = 1, y = i, w = base.w, h = 1, callback = function(self)
+        if fsurf.selected == i and os.epoch("utc") - self.click <= 500 then
+          if attr.isDir then
+            buildFileUI(absolute)
+          else
+            dotui.util.prompt("Please choose an action from the menu bar.",
+              {"OK"})
+          end
         else
-          dotui.util.prompt("Functionality not implemented yet!", {"OK"})
+          self.click = os.epoch("utc")
+          fsurf.selected = i
+          for i=1, #fsurf.children, 1 do
+            fsurf.children[i].bcolor = colors.bg_default
+          end
+          self.bcolor = colors.accent_color
         end
       end, text = text, bg = colors.bg_default
     })
