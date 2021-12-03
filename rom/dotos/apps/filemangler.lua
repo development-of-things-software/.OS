@@ -14,7 +14,7 @@ local fsurf = dotui.UIPage:new {
 }
 
 local scrollable = dotui.Scrollable:new {
-  x = 2, y = 4, w = base.w, h = base.h - 4, child = fsurf
+  x = 1, y = 4, w = base.w, h = base.h - 4, child = fsurf
 }
 
 base:addChild(scrollable)
@@ -23,7 +23,7 @@ base:addChild(dotui.Label:new {
   text = string.format("%s | %s | %s | %s",
     textutils.padRight("Name", 12),
     textutils.padRight("Size", 6),
-    textutils.padRight("Type", 9),
+    textutils.padRight("Type", 4),
     "Last Modified")
 })
 
@@ -69,7 +69,7 @@ do
     end
     w = w + 1
     base:addChild(dotui.Dropdown:new {
-      x = x, y = 2, text = menu[1], w = w, h = #items + 15,
+      x = x, y = 2, text = menu[1], w = w, h = #items + 1,
       items = items, callbacks = callbacks
     })
     x = x + #menu[1] + 2
@@ -99,8 +99,8 @@ buildFileUI = function(dir)
     local size = sizes.format1024(attr.size)
     local text = string.format("%s | %s | %s | %s",
       file, textutils.padRight(size, 6),
-      attr.isDir and "directory" or "file     ",
-      os.date("%Y/%m/%d %H:%M:%S", math.floor(attr.modified / 1000)))
+      attr.isDir and "dir " or "file",
+      os.date("%Y/%m/%d %H:%M", math.floor(attr.modified / 1000)))
     fents[#fents+1] = {
       absolute = absolute, file = file,
     }
@@ -126,6 +126,17 @@ buildFileUI = function(dir)
   end
   fsurf.surface:resize(fsurf.w, fsurf.h)
 end
+
+topbar:addChild(dotui.Clickable:new {
+  x = 1, y = 1, w = 2, h = 1, text = "\24", callback = function()
+    if ftext.text ~= "/" then
+      local parent = fs.getDir(ftext.text)
+      if fs.exists(parent) then
+        buildFileUI(parent)
+      end
+    end
+  end
+})
 
 buildFileUI("/")
 

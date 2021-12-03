@@ -46,6 +46,12 @@ do
     return "/" .. combine(...)
   end
 
+  -- override: fs.getDir
+  local getDir = fs.getDir
+  function fs.getDir(p)
+    return "/" .. getDir(p)
+  end
+
   -- override: fs.list
   local list = fs.list
   function fs.list(path)

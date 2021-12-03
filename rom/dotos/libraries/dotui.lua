@@ -25,7 +25,8 @@ function element:find(x, y, fscr)
   if self.clickable and not fscr then
     return self
   else
-    for k, child in ipairs(self.children) do
+    for k=#self.children, 1, -1 do
+      local child = self.children[k]
       if x >= child.x and y >= child.y and x <= child.x + child.w - 1 and
           y <= child.y + child.h - 1 then
         local f = child:find(x - child.x + 1, y - child.y + 1, fscr)
@@ -140,7 +141,7 @@ function lib.Scrollable:draw(xoff, yoff)
     self.fcolor, self.bcolor)
   self.child.surface:blit(self.drawsurface, -self.scrollX + 1,
     -self.scrollY + 1)
-  self.drawsurface:blit(self.surface, x - 1, y)
+  self.drawsurface:blit(self.surface, x, y)
   -- draw scrollbar
   self.surface:fill(w, y, 1, h, "\127", colorscheme.scrollbar_fg,
     colorscheme.scrollbar_color)
@@ -153,7 +154,7 @@ end
 function lib.Scrollable:find(x, y, fscr)
   local element
   if x >= self.child.x and y >= self.child.y and
-      x < self.child.x + self.child.w and y < self.child.x + self.child.h then
+      x < self.child.x + self.child.w and y < self.child.y + self.child.h then
     element = self.child:find(x + self.scrollX,
       y + self.scrollY, fscr)
   end
@@ -371,7 +372,11 @@ end
 function lib.Dropdown:find(x, y, fscr)
   if fscr then return end
   self.lastY = y
-  return self
+  if self.menuHidden then
+    if y == 1 then return self end
+  else
+    return self
+  end
 end
 
 -- window management
