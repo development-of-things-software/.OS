@@ -32,6 +32,7 @@ local topbar = dotui.UIPage:new {
 }
 
 local fents = {}
+local buildFileUI
 local topbuttons = {
   {"File", {
       {"Open", function(self)
@@ -51,6 +52,31 @@ local topbuttons = {
         dotos.spawn(function()
           dofile(fents[fsurf.selected].absolute)
         end, fents[fsurf.selected].file)
+      end},
+      {"Quit", function(self)
+        dotos.exit()
+      end},
+    }
+  },
+  {"Edit", {
+      {"Delete", function(self)
+        self.selected = 0
+        if fsurf.selected == 0 then
+          dotui.util.prompt("Select a file first.", {"OK"})
+          return
+        end
+        local res = dotui.util.prompt("Really delete?", {"Yes", "No"})
+        if res == "Yes" then
+          fs.delete(fents[fsurf.selected].file)
+          buildFileUI(fents[fsurf.selected].absolute)
+        end
+      end},
+    }
+  },
+  {"Help", {
+      {"About", function(self)
+        dotui.util.prompt("The File Mangler was written by Ocawesome101.  It is a simple file manager for DoT OS.",
+          {"Close"})
       end},
     }
   }
@@ -72,7 +98,7 @@ do
       x = x, y = 2, text = menu[1], w = w, h = #items + 1,
       items = items, callbacks = callbacks
     })
-    x = x + #menu[1] + 2
+    x = x + w + 2
   end
 end
 
@@ -82,7 +108,6 @@ local ftext = dotui.Label:new {
 
 topbar:addChild(ftext)
 
-local buildFileUI
 buildFileUI = function(dir)
   ftext.text = dir
   local files = fs.list(dir)
@@ -91,6 +116,8 @@ buildFileUI = function(dir)
   fsurf.h = #files
   fsurf.selected = 0
   fents = {}
+  scrollable.scrollX = 0
+  scrollable.scrollY = 0
   for i, file in ipairs(files) do
     local absolute = fs.combine(dir, file)
     local attr = fs.attributes(absolute)
