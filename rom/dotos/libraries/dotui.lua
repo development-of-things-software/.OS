@@ -84,9 +84,11 @@ local function base_init(self, args, needsText)
   checkArg("bg", args.bg, "number")
   if needsText then
     checkArg("text", args.text, "string")
-    args.w = args.w or #args.text
   else
     checkArg("text", args.text, "string", "nil")
+  end
+  if args.text then
+    args.w = args.w or #args.text
   end
   checkArg("w", args.w, "number")
   self.x = args.x
@@ -323,7 +325,18 @@ function lib.Dropdown:init(args)
   self.selected = args.selected or 0
   self.menuHidden = true
   self.button = 1
-  self.callback = function() end
+  self.callback = function(self)
+    local y = self.lastY
+    if y == 1 then
+      self.menuHidden = not self.menuHidden
+    elseif not self.menuHidden then
+      local i = y - 1
+      self.selected = i
+      if self.callbacks[i] then self.callbacks[i](self)
+      else self.text = self.items[self.selected] or self.text end
+      self.menuHidden = true
+    end
+  end
   self.callbacks = args.callbacks or {}
 end
 
@@ -334,16 +347,20 @@ end
 
 function lib.Dropdown:draw(xoff, yoff)
   local x, y, w, h = computeCoordinates(self, xoff, yoff)
-  self.surface:set(x, y, textutils.padRight(self.text or "Select something",
-    self.w - 2):sub(1, self.w - 2) .. (self.menuHidden and " \31" or " \30"),
-    self.fcolor, self.bcolor)
+  if not self.hideArrow then
+    self.surface:set(x, y, textutils.padRight(self.text or "Select something",
+      self.w - 2):sub(1, self.w - 2) .. (self.menuHidden and " \31" or " \30"),
+      self.fcolor, self.bcolor)
+  else
+    self.surface:set(x, y, textutils.padRight(self.text or "Select something",
+      self.w):sub(1, self.w), self.fcolor, self.bcolor)
+  end
   if not self.menuHidden then
     for i=1, #self.items, 1 do
       local text = textutils.padRight(self.items[i], w)
       if i == self.selected then
         self.surface:set(x, y + i, text, colorscheme.selector_selected_fg,
           colorscheme.selector_selected_bg)
-        if self.callbacks[i] then self.callbacks[i](self) end
       else
         self.surface:set(x, y + i, text, self.fcolor, self.bcolor)
       end
@@ -353,16 +370,8 @@ end
 
 function lib.Dropdown:find(x, y, fscr)
   if fscr then return end
-  if y == 1 then
-    self.menuHidden = not self.menuHidden
-  elseif not self.menuHidden then
-    self.selected = y - 1
-    self.text = self.items[self.selected] or self.text
-    self.menuHidden = true
-    return self
-  elseif y == 1 then
-    return self
-  end
+  self.lastY = y
+  return self
 end
 
 -- window management
