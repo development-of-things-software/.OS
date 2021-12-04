@@ -9,11 +9,13 @@ local settingsTree = {
   keyboardLayout = {"1.16.5", "1.12.2", default = "1.16.5", idefault = 1,
     name = "Keyboard Layout", type = 1},
   colorScheme = {"Light", "Dark", "Colorful", default = "Light", idefault = 1,
-    name = "Color Scheme", type = 1}
+    name = "Color Scheme", type = 1},
+  interface = {"dotui",
+    default = "dotui", idefault = 1, name = "Interface", type = 1}
 }
 
 local settingsOrder = {
-  "keyboardLayout", "colorScheme"
+  "keyboardLayout", "colorScheme", "interface"
 }
 
 for k,v in pairs(settingsTree) do
