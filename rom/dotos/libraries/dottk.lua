@@ -51,16 +51,15 @@ tk.Window = tk.Element:inherit()
 function tk.Window:init(args)
   checkArg("w", args.w, "number")
   checkArg("h", args.h, "number")
+  checkArg("surface", args.surface, "table")
   self.w = args.w
   self.h = args.h
+  self.surf = args.surface
   self.children = {}
-  -- for rendering e.g. pulldown menus
-  self.overlays = {}
 end
 
-function tk.Window:draw(surf, x, y)
+function tk.Window:draw(x, y)
   -- draw all standard elements
-  -- draw overlays
 end
 
 function tk.Window:resize(w, h)
@@ -72,9 +71,16 @@ function tk.Window:resize(w, h)
       v:resize(v.w + (w - oldW), v.h + (h - oldH))
     end
   end
+  self.surface:resize(w, h)
+  self.w, self.h = w, h
 end
 
 function tk.Window:handle(sig, x, y)
+  -- then check children
+  for i, c in ipairs(self.children) do
+    if x and y then
+    end
+  end
 end
 
 return tk
