@@ -4,6 +4,7 @@ local settings = require("settings")
 local colors = dofile("/dotos/resources/dottk/colors."..
   (settings.sysget("dotTkColors") or "default")..".lua")
 local sigtypes = require("sigtypes")
+local surface = require("surface")
 
 local _element = {}
 
@@ -22,9 +23,9 @@ function _element:inherit()
 end
 
 -- all elements must have these functions
--- :draw() - takes a surface, an X offset, and a Y offset,
--- and draws the element accordingly
-function _element:draw(surf, x, y) end
+-- :draw() - takes an X offset and a Y offset, and draws
+-- the element accordingly.
+function _element:draw(x, y) end
 
 -- :handle() - takes a signal ID, an X coordinate, and a
 -- Y coordinate, both relative to the element's position
@@ -41,6 +42,7 @@ function _element:handle(sig, x, y) end
 -- the following functions are optional
 -- :resize() - takes a width and a height, and resizes
 -- the element accordingly.
+function _element:resize() end
 
 local tk = {}
 
@@ -51,15 +53,18 @@ tk.Window = tk.Element:inherit()
 function tk.Window:init(args)
   checkArg("w", args.w, "number")
   checkArg("h", args.h, "number")
-  checkArg("surface", args.surface, "table")
+  checkArg("root", args.root, "table")
   self.w = args.w
   self.h = args.h
-  self.surf = args.surface
+  self.root = args.root
+  self.surface = surface.new(args.w, args.h)
   self.children = {}
+  self.root:addWindow(self)
 end
 
 function tk.Window:draw(x, y)
-  -- draw all standard elements
+  -- draw all elements
+  self.surface:fill(x, y, self.w, self.h, )
 end
 
 function tk.Window:resize(w, h)
