@@ -15,9 +15,9 @@ end, ".SH")
 
 -- the IO stream has its own "cursor", so disable the default CC one
 term.setCursorBlink(false)
+stream.fd.vt:write(".SH v0\n")
+dotos.logio = stream
 while true do
-  surface.blit()
-  local sig = table.pack(coroutine.yield())
-  if sigtypes.keyboard[sig[1]] then
-  end
+  surface:draw(1,1)
+  coroutine.yield()
 end

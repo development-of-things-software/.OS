@@ -2,6 +2,8 @@
 
 local textutils = require("textutils")
 local colors = require("colors")
+local keys = require("keys")
+
 local vtc = {
   -- standard 8 colors
   colors.black,
@@ -58,12 +60,15 @@ function vts:raw_write(str)
   checkArg(1, str, "string")
   for _,line in ipairs(textutils.lines(str)) do
     while #line > 0 do
-      local chunk = line:sub(1, self.surface.w - self.cx)
+      local chunk = line:sub(1, self.surface.w - self.cx + 1)
       line = line:sub(#chunk + 1)
       self.surface:set(self.cx, self.cy, chunk)
-      self.cx = self.cx + w
+      self.cx = self.cx + #chunk
       corral(self)
     end
+    self.cx = 1
+    self.cy = self.cy + 1
+    corral(self)
   end
 end
 
@@ -71,11 +76,11 @@ function vts:write(str)
   checkArg(1, str, "string")
   -- hide cursor
   local cc, cf, cb = self.surface:get(self.cx, self.cy, 1)
-  self.surface:rawset(self.cx, self.cy, cb, cf)
+  self.surface:rawset(self.cx, self.cy, cc, cb, cf)
   while #str > 0 do
     local nesc = str:find("\27")
     local e = nesc or #str
-    local chunk = str:sub(1, e - 1)
+    local chunk = str:sub(1, e)
     str = str:sub(e)
     self:raw_write(chunk)
     if nesc then
@@ -113,6 +118,8 @@ function vts:write(str)
         elseif csc == "f" or csc == "H" then
           args[1] = args[1] or 1
           args[2] = args[2] or 1
+          self.cy = args[1]
+          self.cx = args[2]
         elseif csc == "J" then
           local c = args[1] or 0
           if c == 0 then
@@ -156,17 +163,28 @@ function vts:write(str)
         corral(self)
       elseif css == "?" then
       end
+    else
+      break
     end
   end
   -- show cursor
-  local cc, cf, cb = self.surface:get(self.cx, self.cy, 1)
-  self.surface:rawset(self.cx, self.cy, cb, cf)
+  local ccc, ccf, ccb = self.surface:get(self.cx, self.cy, 1)
+  self.surface:rawset(self.cx, self.cy, ccc, ccb, ccf)
 end
 
 function lib.new(surf)
   checkArg(1, surf, "table")
-  return setmetatable({
-    cx = 1, cy = 1,
+  surf:fg(colors.lightGray)
+  surf:bg(colors.black)
+  surf:fill(1, 1, surf.w, surf.h, " ")
+  local new
+  new = setmetatable({
+    cx = 1, cy = 1, ibuf = "",
+    surface = surf, handler = dotos.handle("key", function(_, k)
+      local name = keys[k]
+      if #name == 1 then
+      end
+    end)
   }, {__index = vts, __metatable = {}})
 end
 

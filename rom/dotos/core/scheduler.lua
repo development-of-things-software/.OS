@@ -87,6 +87,22 @@ function dotos.listthreads()
   return t
 end
 
+local handlers = {}
+local hn = 0
+function dotos.handle(sig, func)
+  checkArg(1, sig, "string")
+  checkArg(2, func, "function")
+  hn = hn + 1
+  handlers[hn] = {sig = sig, func = func}
+  return hn
+end
+
+function dotos.drop(n)
+  checkArg(1, n, "number")
+  handlers[n] = nil
+  return true
+end
+
 local function loop()
   local lastTimerID
   while threads[1] do
@@ -97,6 +113,16 @@ local function loop()
     if signal[1] == "timer" and signal[2] == lastTimerID then
       lastTimerID = nil
       signal = {n=0}
+    end
+    if signal.n > 0 then
+      for i, handler in pairs(handlers) do
+        if signal[1] == handler.sig then
+          local ok, err = pcall(handler.func, table.unpack(signal, 1, signal.n))
+          if not ok then
+            dotos.log("signal handler error: " .. err)
+          end
+        end
+      end
     end
     for k, v in pairs(threads) do
       current = k

@@ -49,19 +49,24 @@ term.clear()
 local w, h = term.getSize()
 -- system console logger thingy
 local logbuf = {}
+local logio
 function dotos.log(fmt, ...)
   local msg = string.format(fmt, ...)
   msg = string.format("[%s] %s", os.date("%H:%M:%S",
     math.floor(os.epoch("utc") / 1000)), msg)
   logbuf[#logbuf+1] = msg
   if dotos.show_logs then
-    for line in msg:gmatch("[^\n]+") do
-      while #line > 0 do
-        local ln = line:sub(1, w)
-        line = line:sub(#ln + 1)
-        term.scroll(1)
-        term.setCursorPos(1, h)
-        term.write(ln)
+    if type(dotos.logio) == "table" then
+      pcall(dotos.logio.write, dotos.logio, msg)
+    else
+      for line in msg:gmatch("[^\n]+") do
+        while #line > 0 do
+          local ln = line:sub(1, w)
+          line = line:sub(#ln + 1)
+          term.scroll(1)
+          term.setCursorPos(1, h)
+          term.write(ln)
+        end
       end
     end
   end
