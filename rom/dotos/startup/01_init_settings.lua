@@ -5,7 +5,7 @@ local fs = require("fs")
 local defaultConfig = [[
 keyboardLayout="1.12.2"
 colorScheme="Light"
-interface="DotUI"
+interface="dotui"
 ]]
 
 if not fs.exists("/.dotos.cfg") then

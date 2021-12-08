@@ -1,6 +1,7 @@
 -- .SH: text-based shell for power-users --
 
 local term = require("term")
+local sigtypes = require("sigtypes")
 
 local surface = require("surface").new(term.getSize())
 
@@ -16,5 +17,7 @@ end, ".SH")
 term.setCursorBlink(false)
 while true do
   surface.blit()
-  coroutine.yield()
+  local sig = table.pack(coroutine.yield())
+  if sigtypes.keyboard[sig[1]] then
+  end
 end
