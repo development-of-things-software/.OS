@@ -50,6 +50,14 @@ function dotos.getio(field)
   return (threads[current] or default_thread).io[field] or default_stream
 end
 
+function dotos.setio(field, file)
+  checkArg(1, field, "string")
+  checkArg(2, file, "table")
+  local t = threads[current] or default_thread
+  t.io[field] = id
+  return true
+end
+
 function dotos.running(id)
   checkArg(1, id, "number")
   return not not threads[id]

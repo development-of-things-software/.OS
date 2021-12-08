@@ -275,7 +275,8 @@ function io.write(...)
   return io.stdout:write(...)
 end
 
-function io.flush()
+function io.flush(f)
+  (f or io.stdout):flush()
 end
 
 function io.type(f)
@@ -290,6 +291,25 @@ function io.close(f)
   f = f or io.stdout
   return f:close()
 end
+
+-- make IO field setter
+local function mkifs(k, m)
+  return function(file)
+    checkArg(1, file, "table", "string", "nil")
+    if type(file) == "string" then
+      file = assert(io.open(file, m))
+    end
+    if file then
+      assert(io.type(file) == "file",
+        "bad argument #1 (expected FILE, got table)")
+      dotos.setio(k, file)
+    end
+    return dotos.getio(k)
+  end
+end
+
+io.input = mkifs("stdin", "r")
+io.output = mkifs("stdout", "w")
 
 -- loadfile and dofile here as well
 function _G.loadfile(file, mode, env)

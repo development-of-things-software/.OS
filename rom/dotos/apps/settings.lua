@@ -10,7 +10,7 @@ local settingsTree = {
     name = "Keyboard Layout", type = 1},
   colorScheme = {"Light", "Dark", "Colorful", default = "Light", idefault = 1,
     name = "Color Scheme", type = 1},
-  interface = {"dotui",
+  interface = {"dotui", "dotsh",
     default = "dotui", idefault = 1, name = "Interface", type = 1}
 }
 
