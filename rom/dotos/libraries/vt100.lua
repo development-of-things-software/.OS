@@ -164,6 +164,11 @@ function vts:write(str)
             if c == 0 then
               self.surface:fg(colors.lightGray)
               self.surface:bg(colors.black)
+              self.echo = true
+            elseif c == 8 then
+              self.echo = false
+            elseif c == 28 then
+              self.echo = true
             elseif c > 29 and c < 38 then
               self.surface:fg(vtc[c - 29])
             elseif c > 39 and c < 48 then
@@ -234,22 +239,22 @@ function lib.new(surf)
   surf:fill(1, 1, surf.w, surf.h, " ")
   local new
   new = setmetatable({
-    cx = 1, cy = 1, ibuf = "",
+    cx = 1, cy = 1, ibuf = "", echo = true,
     surface = surf, specialhandler = dotos.handle("key", function(_, k)
       if k == keys.backspace then
         if #new.ibuf > 0 and new.ibuf:sub(-1) ~= "\n" then
           new.ibuf = new.ibuf:sub(1, -2)
-          new:write("\27[D \27[D")
+          if new.echo then new:write("\27[D \27[D") end
         end
       elseif k == keys.enter then
-        new:write("\n")
+        if new.echo then new:write("\n") end
         new.ibuf = new.ibuf .. "\n"
       end
     end), charhandler = dotos.handle("char", function(_, c)
       if c == "d" and keys.ctrlPressed() then
         new.ibuf = new.ibuf .. "\4"
       elseif not keys.ctrlPressed() then
-        new:write(c)
+        if new.echo then new:write(c) end
         new.ibuf = new.ibuf .. c
       end
     end)
