@@ -1,0 +1,4 @@
+{RED}#{WHITE} For help type {BLUE}help{WHITE}.
+{RED}#{WHITE} To see what commands are available, type
+  {BLUE}list /dotos/binaries{WHITE}.
+{RED}#{WHITE} To change this message, edit {YELLOW}/user/motd.txt{WHITE}.

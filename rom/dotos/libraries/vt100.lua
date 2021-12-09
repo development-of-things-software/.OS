@@ -165,17 +165,17 @@ function vts:write(str)
               self.surface:fg(colors.lightGray)
               self.surface:bg(colors.black)
             elseif c > 29 and c < 38 then
-              self.surface:fg(colors[c - 29])
+              self.surface:fg(vtc[c - 29])
             elseif c > 39 and c < 48 then
-              self.surface:bg(colors[c - 39])
+              self.surface:bg(vtc[c - 39])
             elseif c > 89 and c < 98 then
-              self.surface:fg(colors[c - 89])
+              self.surface:fg(vtc[c - 81])
             elseif c > 99 and c < 108 then
-              self.surface:bg(colors[c - 99])
+              self.surface:bg(vtc[c - 91])
             elseif c == 39 then
               self.surface:fg(colors.lightGray)
             elseif c == 49 then
-              self.surface:fg(colors.black)
+              self.surface:bg(colors.black)
             end
           end
         end
