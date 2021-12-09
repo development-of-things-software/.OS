@@ -1,6 +1,6 @@
 -- keymap for 1.16.5+ 
 
-local keymap = {
+return {
   [32] = "space",
   [39] = "apostrophe",
   [44] = "comma",

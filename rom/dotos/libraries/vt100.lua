@@ -58,7 +58,11 @@ end
 
 function vts:raw_write(str)
   checkArg(1, str, "string")
-  for _,line in ipairs(textutils.lines(str)) do
+  while #str > 0 do
+    local nl = str:find("\n") or #str
+    local line = str:sub(1, nl)
+    str = str:sub(#line + 1)
+    local nnl = line:sub(-1) == "\n"
     while #line > 0 do
       local chunk = line:sub(1, self.surface.w - self.cx + 1)
       line = line:sub(#chunk + 1)
@@ -66,9 +70,11 @@ function vts:raw_write(str)
       self.cx = self.cx + #chunk
       corral(self)
     end
-    self.cx = 1
-    self.cy = self.cy + 1
-    corral(self)
+    if nnl then
+      self.cx = 1
+      self.cy = self.cy + 1
+      corral(self)
+    end
   end
 end
 
@@ -79,12 +85,12 @@ function vts:write(str)
   self.surface:rawset(self.cx, self.cy, cc, cb, cf)
   while #str > 0 do
     local nesc = str:find("\27")
-    local e = nesc or #str
+    local e = (nesc and nesc - 1) or #str
     local chunk = str:sub(1, e)
-    str = str:sub(e)
+    str = str:sub(#chunk+1)
     self:raw_write(chunk)
     if nesc then
-      local css, paramdata, csc, len = str:match("\27[%[%?]([%d;]*)%()")
+      local css, paramdata, csc, len = str:match("^\27([%[%(])([%d;]*)(%a)()")
       str = str:sub(len)
       local args = {}
       for n in paramdata:gmatch("[^;]+") do
@@ -172,6 +178,39 @@ function vts:write(str)
   self.surface:rawset(self.cx, self.cy, ccc, ccb, ccf)
 end
 
+function vts:readc()
+  while #self.ibuf == 0 do coroutine.yield() end
+  local byte = self.ibuf:sub(1,1)
+  self.ibuf = self.ibuf:sub(2)
+  return byte
+end
+
+function vts:readline(knl)
+  checkArg(1, knl, "boolean", "nil")
+  while not self.ibuf:match("\n") do coroutine.yield() end
+  local n = self.ibuf:find("\n")
+  local ln = self.ibuf:sub(1, n)
+  self.ibuf = self.ibuf:sub(#ln + 1)
+  if not knl then ln = ln:sub(1, -2) end
+  return ln
+end
+
+function vts:read(n)
+  checkArg(1, n, "number", "nil")
+  local ret = ""
+  repeat
+    local c = self:readc()
+    ret = ret .. c
+  until #ret == c or c == "\4"
+  if ret:sub(-1) == "\4" then ret = ret:sub(1, -2) end
+  return ret
+end
+
+function vts:close()
+  dotos.drop(self.specialhandler)
+  dotos.drop(self.charhandler)
+end
+
 function lib.new(surf)
   checkArg(1, surf, "table")
   surf:fg(colors.lightGray)
@@ -180,12 +219,28 @@ function lib.new(surf)
   local new
   new = setmetatable({
     cx = 1, cy = 1, ibuf = "",
-    surface = surf, handler = dotos.handle("key", function(_, k)
-      local name = keys[k]
-      if #name == 1 then
+    surface = surf, specialhandler = dotos.handle("key", function(_, k)
+      --print(k, keys.backspace)
+      if k == keys.backspace then
+        if #new.ibuf > 0 and new.ibuf:sub(-1) ~= "\n" then
+          new.ibuf = new.ibuf:sub(1, -2)
+          new:write("\27[D \27[D")
+        end
+      elseif k == keys.enter then
+        new:write("\n")
+        new.ibuf = new.ibuf .. "\n"
+      end
+    end), charhandler = dotos.handle("char", function(_, c)
+      --c = string.char(c)
+      if c == "d" and keys.ctrlPressed() then
+        new.ibuf = new.ibuf .. "\4"
+      elseif not keys.ctrlPressed() then
+        new:write(c)
+        new.ibuf = new.ibuf .. c
       end
     end)
   }, {__index = vts, __metatable = {}})
+  return new
 end
 
 return lib

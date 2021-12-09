@@ -16,7 +16,7 @@ function lib.wrap(surface)
 
   function s.readLine(keepnl)
     keepnl = not not keepnl
-    return s.vt:readLine()
+    return s.vt:readline(keepnl)
   end
 
   function s.readAll()
@@ -35,7 +35,7 @@ function lib.wrap(surface)
     return s.vt:close()
   end
 
-  s.vt=vt.new(surface)
+  s.vt = vt.new(surface)
   return dotos.mkfile(s, "rw")
 end
 
