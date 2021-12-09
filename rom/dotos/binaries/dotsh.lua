@@ -40,6 +40,7 @@ local function resolve(cmd)
   return nil, "command not found"
 end
 
+local execute
 local builtins = {
   resolve = function(c, path)
     local res, err = resolve(path)
@@ -64,6 +65,10 @@ local builtins = {
   echo = function(c, ...)
     local text = table.concat(table.pack(...), " ")
     if c then return text else print(text) end
+  end,
+  source = function(c, file, ...)
+    local args = {...}
+    return execute("{.cat " .. file .. "}", c, {...})
   end
 }
 
@@ -72,7 +77,7 @@ local aliases = {
   rm = "delete",
 }
 
-local function execute(input, capture)
+execute = function(input, capture, positional)
   local tokens = splitters.complex(input)
   local cmd = tokens[1]
   if aliases[cmd] then cmd = aliases[cmd] end
@@ -93,6 +98,11 @@ local function execute(input, capture)
             flush = function() end,
             close = function() end
           }, "w"))
+      end
+      if positional then
+        for i=1, #positional, 1 do
+          os.setenv(tostring(i), positional[i])
+        end
       end
       local ok, res = pcall(dofile, cmd, table.unpack(tokens, 2, tokens.n))
       if not ok then err = res end
