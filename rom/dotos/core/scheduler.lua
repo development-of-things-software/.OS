@@ -16,7 +16,7 @@ local default_stream = {
   close = function() end,
 }
 default_stream = dotos.mkfile(default_stream, "rwb")
-local default_thread = {io = {}, env = {TERM = "cynosure"}}
+local default_thread = {io = {}, env = {TERM = "cynosure", HOME = "/"}}
 
 function dotos.spawn(func, name, root)
   checkArg(1, func, "function")
@@ -112,6 +112,7 @@ end
 
 function dotos.exit()
   threads[current] = nil
+  coroutine.yield()
 end
 
 function dotos.listthreads()

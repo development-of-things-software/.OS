@@ -157,7 +157,7 @@ do
     end
   end
 
-  local home = os.getenv("HOME") or "/"
+  local home = os.getenv("HOME")
   local handle = io.open(home .. "/.vlerc", "r")
   if handle then
     for line in handle:lines() do
@@ -605,8 +605,8 @@ local function try_get_highlighter()
   if not ext then
     return
   end
-  local try = "/usr/share/VLE/"..ext..".vle"
-  local also_try = os.getenv("HOME").."/.local/share/VLE/"..ext..".vle"
+  local try = "/dotos/resources/tle/"..ext..".vle"
+  local also_try = "/user/tle/"..ext..".vle"
   local ok, ret = pcall(syntax.load, also_try)
   if ok then
     return ret

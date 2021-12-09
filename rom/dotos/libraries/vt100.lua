@@ -60,10 +60,10 @@ function vts:scroll(n)
     end
     self.surface:fill(1, self.surface.h - n, self.surface.w, n, " ")
   elseif n < 0 then
-    for i=self.surface.h - n, n, -1 do
-      self.surface.buffer_text[i + n] = self.surface.buffer_text[i]
-      self.surface.buffer_fg[i + n] = self.surface.buffer_fg[i]
-      self.surface.buffer_bg[i + n] = self.surface.buffer_bg[i]
+    for i=self.surface.h - n, 1, -1 do
+      self.surface.buffer_text[i - n] = self.surface.buffer_text[i]
+      self.surface.buffer_fg[i - n] = self.surface.buffer_fg[i]
+      self.surface.buffer_bg[i - n] = self.surface.buffer_bg[i]
     end
     self.surface:fill(1, 1, self.surface.w, n, " ")
   end
@@ -103,7 +103,8 @@ function vts:write(str)
     str = str:sub(#chunk+1)
     self:raw_write(chunk)
     if nesc then
-      local css, paramdata, csc, len = str:match("^\27([%[%?])([%d;]*)(%a)()")
+      local css, paramdata, csc, len
+        = str:match("^\27([%[%?])([%d;]*)([%a%[])()")
       str = str:sub(len)
       local args = {}
       for n in paramdata:gmatch("[^;]+") do
@@ -190,9 +191,9 @@ function vts:write(str)
             self.ibuf = self.ibuf .. "\27["..self.cy..";"..self.cx.."R"
           end
         elseif csc == "S" then
-          self:scroll(-(args[1] or 1))
-        elseif csc == "T" then
           self:scroll(args[1] or 1)
+        elseif csc == "T" then
+          self:scroll(-(args[1] or 1))
         end
         corral(self)
       elseif css == "?" then
@@ -286,32 +287,33 @@ function lib.new(surf)
           end
         end
       elseif k == keys.enter then
-        if new.echo then new:write("\n") end
-        new.ibuf = new.ibuf .. "\n"
+        if new.raw then
+          new.ibuf = new.ibuf .. "\r"
+        else
+          if new.echo then new:write("\n") end
+          new.ibuf = new.ibuf .. "\n"
+        end
       elseif k == keys.up then
-        if new.echo then new:write("\27[[A") end
+        if new.echo and not new.raw then new:write("\27[[A") end
         new.ibuf = new.ibuf .. "\27[A"
       elseif k == keys.down then
-        if new.echo then new:write("\27[[B") end
+        if new.echo and not new.raw then new:write("\27[[B") end
         new.ibuf = new.ibuf .. "\27[B"
       elseif k == keys.left then
-        if new.echo then new:write("\27[[D") end
+        if new.echo and not new.raw then new:write("\27[[D") end
         new.ibuf = new.ibuf .. "\27[D"
       elseif k == keys.right then
-        if new.echo then new:write("\27[[C") end
+        if new.echo and not new.raw then new:write("\27[[C") end
         new.ibuf = new.ibuf .. "\27[C"
-      end
-    end), charhandler = dotos.handle("char", function(_, c)
-      if keys.ctrlPressed() then
-        local byte = string.byte(c)
+      elseif keys.ctrlPressed() and #keys[k] == 1 then
+        local byte = string.byte(keys[k])
         if byte > 96 and byte < 123 then
-          print(byte - 96)
           new.ibuf = new.ibuf .. string.char(byte - 96)
         end
-      else
-        if new.echo then new:write(c) end
-        new.ibuf = new.ibuf .. c
       end
+    end), charhandler = dotos.handle("char", function(_, c)
+      if new.echo then new:write(c) end
+      new.ibuf = new.ibuf .. c
     end)
   }, {__index = vts, __metatable = {}})
   return new

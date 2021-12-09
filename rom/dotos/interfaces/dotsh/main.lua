@@ -4,6 +4,7 @@ local term = require("term")
 local sigtypes = require("sigtypes")
 
 local surface = require("surface").new(term.getSize())
+surface:resize(surface.w, surface.h + 1)
 
 local stream = require("iostream").wrap(surface)
 io.input(stream)

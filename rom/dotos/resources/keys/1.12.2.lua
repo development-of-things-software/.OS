@@ -20,6 +20,6 @@ return {
   "numpadEnter", "rightControl", nil, nil, nil, nil, nil, nil, nil, nil, nil,
   nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, "numpadComma",
   nil, "numpadDivide", nil, nil, "rightAlt", nil, nil, nil, nil, nil, nil,
-  nil, nil, nil, nil, nil, nil, "pause", nil, "home", "up", nil, "pageUp", nil,
+  nil, nil, nil, nil, nil, nil, "pause", nil, "home", "up", "pageUp", nil,
   "left", nil, "right", nil, "end", "down", "pageDown", "insert", "delete"
 }
