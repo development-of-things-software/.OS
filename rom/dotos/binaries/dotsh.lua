@@ -20,6 +20,7 @@ if handle then
 end
 
 while true do
-  io.write("\27[39;49m$ ")
+  io.write(string.format("\27[91;49m%s\27[39m: \27[34m%s\27[39m$ ",
+    dotos.getuser(), dotos.getpwd()))
   print("\27[91;107mINPUT\27[39;49m: " .. io.read())
 end

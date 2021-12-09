@@ -1,5 +1,8 @@
 -- scheduler --
 
+local users = dofile("/rom/dotos/core/users.lua")
+local fs = require("fs")
+
 local threads = {}
 local current = 0
 local max = 0
@@ -30,7 +33,8 @@ function dotos.spawn(func, name, root)
     },
     pwd = parent.pwd or "/",
     root = root or parent.root or "/",
-    name = name
+    name = name,
+    user = parent.user or "admin",
   }
   max = max + 1
   threads[max] = thread
@@ -39,6 +43,15 @@ end
 
 function dotos.getpwd()
   return (threads[current] or default_thread).pwd
+end
+
+function dotos.setpwd(path)
+  checkArg(1, path, "string")
+  local t = threads[current] or default_thread
+  if path:sub(1,1) ~= "/" then path = fs.combine(t.pwd, path) end
+  if not fs.exists(path) then return nil, "no such file or directory" end
+  if not fs.isDir(path) then return nil, "not a directory" end
+  t.pwd = path
 end
 
 function dotos.getroot()
@@ -70,6 +83,19 @@ end
 function dotos.kill(id)
   checkArg(1, id, "number")
   threads[id] = nil
+end
+
+function dotos.getuser()
+  return threads[current].user
+end
+
+function dotos.setuser(name)
+  checkArg(1, name, "string")
+  if users.exists(name) then
+    threads[current].user = name
+  else
+    return nil, "that user does not exist"
+  end
 end
 
 function dotos.exit()

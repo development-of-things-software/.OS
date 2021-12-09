@@ -44,16 +44,24 @@ function lib.save(file, cfg)
   handle:close()
 end
 
--- system settings functions
-local file = "/.dotos.cfg"
-function lib.sysget(k)
+function lib.get(file, k)
   return lib.load(file)[k]
 end
 
-function lib.sysset(k, v)
+function lib.set(file, k, v)
   local c = lib.load(file)
   c[k] = v
   lib.save(file, c)
+end
+
+-- system settings functions
+local file = "/.dotos.cfg"
+function lib.sysget(k)
+  return lib.get(file, k)
+end
+
+function lib.sysset(k, v)
+  return lib.set(file, k, v)
 end
 
 return lib
