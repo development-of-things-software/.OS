@@ -1,6 +1,6 @@
 -- list --
 
-local args = {...}
+local args, opts = require("argparser")(...)
 local fs = require("fs")
 local textutils = require("textutils")
 
@@ -16,12 +16,14 @@ for i=1, #files, 1 do
 end
 for i, file in ipairs(files) do
   local full = fs.combine(path, file)
-  if fs.isDir(full) then
-    out = out .. "\27[34m"
-  elseif full:sub(-4) == ".lua" then
-    out = out .. "\27[32m"
-  else
-    out = out .. "\27[97m"
+  if not opts.nocolor then
+    if fs.isDir(full) then
+      out = out .. "\27[34m"
+    elseif full:sub(-4) == ".lua" then
+      out = out .. "\27[32m"
+    else
+      out = out .. "\27[97m"
+    end
   end
   file = textutils.padRight(file, len)
   if x + #file + 3 > 51 then
