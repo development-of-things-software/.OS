@@ -103,7 +103,7 @@ function vts:write(str)
     str = str:sub(#chunk+1)
     self:raw_write(chunk)
     if nesc then
-      local css, paramdata, csc, len = str:match("^\27([%[%(])([%d;]*)(%a)()")
+      local css, paramdata, csc, len = str:match("^\27([%[%?])([%d;]*)(%a)()")
       str = str:sub(len)
       local args = {}
       for n in paramdata:gmatch("[^;]+") do
@@ -111,7 +111,9 @@ function vts:write(str)
       end
       if css == "[" then
         -- minimal subset of the standard
-        if csc == "A" then
+        if csc == "[" then
+          self:raw_write("^[[")
+        elseif csc == "A" then
           args[1] = args[1] or 1
           self.cy = self.cy - args[1]
         elseif csc == "B" then
@@ -137,8 +139,8 @@ function vts:write(str)
         elseif csc == "f" or csc == "H" then
           args[1] = args[1] or 1
           args[2] = args[2] or 1
-          self.cy = args[1]
-          self.cx = args[2]
+          self.cy = math.max(1, math.min(self.surface.h, args[1]))
+          self.cx = math.max(1, math.min(self.surface.w, args[2]))
         elseif csc == "J" then
           local c = args[1] or 0
           if c == 0 then
@@ -166,7 +168,7 @@ function vts:write(str)
               self.surface:bg(colors.black)
               self.echo = true
             elseif c == 8 then
-              self.echo = false
+              --self.echo = false
             elseif c == 28 then
               self.echo = true
             elseif c > 29 and c < 38 then
@@ -183,9 +185,39 @@ function vts:write(str)
               self.surface:bg(colors.black)
             end
           end
+        elseif csc == "n" then
+          if args[1] == 6 then
+            self.ibuf = self.ibuf .. "\27["..self.cy..";"..self.cx.."R"
+          end
+        elseif csc == "S" then
+          self:scroll(-(args[1] or 1))
+        elseif csc == "T" then
+          self:scroll(args[1] or 1)
         end
         corral(self)
       elseif css == "?" then
+        if csc == "c" then
+          args[1] = args[1] or 0
+          for _, n in ipairs(args) do
+            if n == 0 then
+              self.echo = true
+              self.line = true
+              self.raw = false
+            elseif n == 1 then
+              self.echo = true
+            elseif n == 2 then
+              self.line = true
+            elseif n == 3 then
+              self.raw = true
+            elseif n == 11 then
+              self.echo = false
+            elseif n == 12 then
+              self.line = false
+            elseif n == 13 then
+              self.raw = false
+            end
+          end
+        end
       end
     else
       break
@@ -216,11 +248,14 @@ end
 function vts:read(n)
   checkArg(1, n, "number")
   local ret = ""
+  if self.line and not self.raw then
+    while not self.ibuf:match("\n") do coroutine.yield() end
+  end
   repeat
     local c = self:readc()
     ret = ret .. c
-  until #ret == n or c == "\4"
-  if ret:sub(-1) == "\4" then
+  until #ret == n or ((not self.raw) and c == "\4")
+  if ret:sub(-1) == "\4" and not self.raw then
     ret = ret:sub(1, -2)
     if #ret == 0 then return nil end
   end
@@ -242,18 +277,38 @@ function lib.new(surf)
     cx = 1, cy = 1, ibuf = "", echo = true,
     surface = surf, specialhandler = dotos.handle("key", function(_, k)
       if k == keys.backspace then
-        if #new.ibuf > 0 and new.ibuf:sub(-1) ~= "\n" then
-          new.ibuf = new.ibuf:sub(1, -2)
-          if new.echo then new:write("\27[D \27[D") end
+        if new.raw then
+          new.ibuf = new.ibuf .. "\8"
+        else
+          if #new.ibuf > 0 and new.ibuf:sub(-1) ~= "\n" then
+            new.ibuf = new.ibuf:sub(1, -2)
+            if new.echo then new:write("\27[D \27[D") end
+          end
         end
       elseif k == keys.enter then
         if new.echo then new:write("\n") end
         new.ibuf = new.ibuf .. "\n"
+      elseif k == keys.up then
+        if new.echo then new:write("\27[[A") end
+        new.ibuf = new.ibuf .. "\27[A"
+      elseif k == keys.down then
+        if new.echo then new:write("\27[[B") end
+        new.ibuf = new.ibuf .. "\27[B"
+      elseif k == keys.left then
+        if new.echo then new:write("\27[[D") end
+        new.ibuf = new.ibuf .. "\27[D"
+      elseif k == keys.right then
+        if new.echo then new:write("\27[[C") end
+        new.ibuf = new.ibuf .. "\27[C"
       end
     end), charhandler = dotos.handle("char", function(_, c)
-      if c == "d" and keys.ctrlPressed() then
-        new.ibuf = new.ibuf .. "\4"
-      elseif not keys.ctrlPressed() then
+      if keys.ctrlPressed() then
+        local byte = string.byte(c)
+        if byte > 96 and byte < 123 then
+          print(byte - 96)
+          new.ibuf = new.ibuf .. string.char(byte - 96)
+        end
+      else
         if new.echo then new:write(c) end
         new.ibuf = new.ibuf .. c
       end

@@ -16,7 +16,7 @@ local default_stream = {
   close = function() end,
 }
 default_stream = dotos.mkfile(default_stream, "rwb")
-local default_thread = {io = {}, env = {}}
+local default_thread = {io = {}, env = {TERM = "cynosure"}}
 
 function dotos.spawn(func, name, root)
   checkArg(1, func, "function")
@@ -25,7 +25,7 @@ function dotos.spawn(func, name, root)
   local parent = threads[current] or default_thread
   local thread = {
     coro = coroutine.create(func),
-    env = {},
+    env = setmetatable({}, {__index = parent.env or {}}),
     io = {
       stdin = parent.io.stdin or default_stream,
       stdout = parent.io.stdout or default_stream,

@@ -160,6 +160,7 @@ end, __metatable = {}})
 
 local function fread(f, ...)
   checkArg(1, f, "table")
+  if f.flush then pcall(f.flush, f) end
   local fmt = table.pack(...)
   local results = {}
   local n = 0
@@ -170,7 +171,7 @@ local function fread(f, ...)
   end
   
   for i, fmt in ipairs(fmt) do
-    fmt = fmt:gsub("%*", "")
+    if type(fmt) == "string" then fmt = fmt:gsub("%*", "") end
     n = n + 1
     if fmt == "n" then
       error("bad argument to 'read' (format 'n' not supported)")
@@ -199,7 +200,7 @@ local function fwrite(f, ...)
   local towrite = ""
   
   for i, write in ipairs(towrite_raw) do
-    checkArg(i+1, write, "string")
+    checkArg(i+1, write, "string", "number")
     towrite = towrite .. write
   end
   

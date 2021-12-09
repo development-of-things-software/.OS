@@ -8,6 +8,7 @@ local surface = require("surface").new(term.getSize())
 local stream = require("iostream").wrap(surface)
 io.input(stream)
 io.output(stream)
+dotos.setio("stderr", stream)
 
 local id = dotos.spawn(function()
   dofile("/dotos/binaries/dotsh.lua")
