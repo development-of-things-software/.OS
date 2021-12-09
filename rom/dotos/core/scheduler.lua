@@ -41,6 +41,16 @@ function dotos.spawn(func, name, root)
   return max
 end
 
+function dotos.getenv(k)
+  checkArg(1, k, "string")
+  return threads[current].env[k]
+end
+
+function dotos.setenv(k, v)
+  checkArg(1, k, "string")
+  threads[current].env[k] = v
+end
+
 function dotos.getpwd()
   return (threads[current] or default_thread).pwd
 end

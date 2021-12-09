@@ -188,9 +188,9 @@ _G.io = ok(osPath)
 -- load package library
 _G.package = dofile("/dotos/libraries/package.lua")
 -- install some more essential functions
+local loop = dofile("/dotos/core/scheduler.lua")
 dofile("/dotos/core/essentials.lua")
 
-local loop = dofile("/dotos/core/scheduler.lua")
 local init, err = loadfile("/dotos/init.lua")
 if not init then
   perr(err)

@@ -10,6 +10,8 @@ function os.sleep(s)
 end
 
 os.exit = dotos.exit
+os.setenv = dotos.setenv
+os.getenv = dotos.getenv
 
 function os.version()
   return ".OS 0.1"
