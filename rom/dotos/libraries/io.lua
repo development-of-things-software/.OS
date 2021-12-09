@@ -35,6 +35,10 @@ do
     local segments = split(path)
     if segments[1] == "dotos" then
       return fs.combine(osPath, path)
+    elseif segments[1] == "user" then
+      return fs.combine("/users",
+        (dotos.getuser and dotos.getuser()) or "admin",
+        table.concat(segments, "/", 2))
     else
       return path
     end
@@ -59,8 +63,9 @@ do
     path = resolve(path)
     local files = list(path)
     if path == "/" then
-      -- inject /dotos into the root listing
+      -- inject /dotos and /user into the root listing
       files[#files+1] = "dotos"
+      files[#files+1] = "user"
     end
     return files
   end
