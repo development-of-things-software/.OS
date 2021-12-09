@@ -54,7 +54,7 @@ function dotos.setio(field, file)
   checkArg(1, field, "string")
   checkArg(2, file, "table")
   local t = threads[current] or default_thread
-  t.io[field] = id
+  t.io[field] = file
   return true
 end
 

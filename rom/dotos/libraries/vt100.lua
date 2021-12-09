@@ -35,7 +35,7 @@ local function corral(s)
     s.cx = s.cx + s.surface.w
   end
 
-  while s.cx >= s.surface.w do
+  while s.cx > s.surface.w do
     s.cy = s.cy + 1
     s.cx = s.cx - s.surface.w
   end
@@ -45,15 +45,28 @@ local function corral(s)
     s.cy = s.cy + 1
   end
 
-  while s.cy > s.surface.h do
+  while s.cy >= s.surface.h do
     s:scroll(1)
     s.cy = s.cy - 1
   end
 end
 
 function vts:scroll(n)
-  -- TODO: this works for scrolling up, but not for scrolling down
-  self.surface:blit(self.surface, 1, -n)
+  if n > 0 then
+    for i=n+1, self.surface.h, 1 do
+      self.surface.buffer_text[i - n] = self.surface.buffer_text[i]
+      self.surface.buffer_fg[i - n] = self.surface.buffer_fg[i]
+      self.surface.buffer_bg[i - n] = self.surface.buffer_bg[i]
+    end
+    self.surface:fill(1, self.surface.h - n, self.surface.w, n, " ")
+  elseif n < 0 then
+    for i=self.surface.h - n, n, -1 do
+      self.surface.buffer_text[i + n] = self.surface.buffer_text[i]
+      self.surface.buffer_fg[i + n] = self.surface.buffer_fg[i]
+      self.surface.buffer_bg[i + n] = self.surface.buffer_bg[i]
+    end
+    self.surface:fill(1, 1, self.surface.w, n, " ")
+  end
 end
 
 function vts:raw_write(str)
@@ -73,8 +86,8 @@ function vts:raw_write(str)
     if nnl then
       self.cx = 1
       self.cy = self.cy + 1
-      corral(self)
     end
+    corral(self)
   end
 end
 
@@ -196,13 +209,16 @@ function vts:readline(knl)
 end
 
 function vts:read(n)
-  checkArg(1, n, "number", "nil")
+  checkArg(1, n, "number")
   local ret = ""
   repeat
     local c = self:readc()
     ret = ret .. c
-  until #ret == c or c == "\4"
-  if ret:sub(-1) == "\4" then ret = ret:sub(1, -2) end
+  until #ret == n or c == "\4"
+  if ret:sub(-1) == "\4" then
+    ret = ret:sub(1, -2)
+    if #ret == 0 then return nil end
+  end
   return ret
 end
 
@@ -220,7 +236,6 @@ function lib.new(surf)
   new = setmetatable({
     cx = 1, cy = 1, ibuf = "",
     surface = surf, specialhandler = dotos.handle("key", function(_, k)
-      --print(k, keys.backspace)
       if k == keys.backspace then
         if #new.ibuf > 0 and new.ibuf:sub(-1) ~= "\n" then
           new.ibuf = new.ibuf:sub(1, -2)
@@ -231,7 +246,6 @@ function lib.new(surf)
         new.ibuf = new.ibuf .. "\n"
       end
     end), charhandler = dotos.handle("char", function(_, c)
-      --c = string.char(c)
       if c == "d" and keys.ctrlPressed() then
         new.ibuf = new.ibuf .. "\4"
       elseif not keys.ctrlPressed() then
