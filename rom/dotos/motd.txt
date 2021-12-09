@@ -1,4 +1,6 @@
 {RED}#{WHITE} For help type {BLUE}help{WHITE}.
-{RED}#{WHITE} To see what commands are available, type
+{RED}#{WHITE} To return to .UI, run {BLUE}set interface dotui{WHITE}, then
+  {BLUE}power -r{WHITE}.
+{RED}#{WHITE} To see what commands are available, run
   {BLUE}list /dotos/binaries{WHITE}.
 {RED}#{WHITE} To change this message, edit {YELLOW}/user/motd.txt{WHITE}.

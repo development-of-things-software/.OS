@@ -1,0 +1,3 @@
+== .OS Help ==
+
+To switch interfaces to DoT UI, run "set interface dotui".

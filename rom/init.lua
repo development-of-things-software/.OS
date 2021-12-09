@@ -42,7 +42,7 @@ _G.dotos = {
   show_logs = true
 }
 
-term.setBackgroundColor(0x100)
+term.setBackgroundColor(0x1)
 term.setTextColor(0x8000)
 term.clear()
 

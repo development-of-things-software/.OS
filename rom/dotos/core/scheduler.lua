@@ -42,6 +42,7 @@ function dotos.spawn(func, name, root)
 end
 
 function dotos.getenv(k)
+  if not k then return threads[current].env end
   checkArg(1, k, "string")
   return threads[current].env[k]
 end
@@ -96,13 +97,14 @@ function dotos.kill(id)
 end
 
 function dotos.getuser()
-  return threads[current].user
+  return (threads[current] or default_thread).user
 end
 
 function dotos.setuser(name)
   checkArg(1, name, "string")
   if users.exists(name) then
     threads[current].user = name
+    return true
   else
     return nil, "that user does not exist"
   end

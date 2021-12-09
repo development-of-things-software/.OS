@@ -1,0 +1,3 @@
+local file = ...
+local ok, err = require("fs").makeDir(file)
+if not ok and err then error(err, 0) end

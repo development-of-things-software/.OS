@@ -61,7 +61,8 @@ do
   function fs.list(path)
     checkArg(1, path, "string")
     path = resolve(path)
-    local files = list(path)
+    local _, files = pcall(list, path)
+    if not _ then return nil, files end
     if path == "/" then
       -- inject /dotos and /user into the root listing
       files[#files+1] = "dotos"
