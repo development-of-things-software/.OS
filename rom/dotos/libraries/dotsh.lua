@@ -76,6 +76,7 @@ local builtins = {
 local aliases = {
   ls = "list",
   rm = "delete",
+  edit = "tle"
 }
 
 execute = function(input, capture, positional)
