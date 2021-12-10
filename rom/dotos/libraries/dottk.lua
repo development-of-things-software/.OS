@@ -63,8 +63,12 @@ function tk.Window:init(args)
 end
 
 function tk.Window:draw(x, y)
+  -- draw self
+  self.surface:fill(x, y, self.w, self.h, " ", 1, self.bg)
   -- draw all elements
-  self.surface:fill(x, y, self.w, self.h, )
+  for k, v in pairs(self.children) do
+    v:draw(x + v.x - 1, y + v.y - 1)
+  end
 end
 
 function tk.Window:resize(w, h)
@@ -81,10 +85,15 @@ function tk.Window:resize(w, h)
 end
 
 function tk.Window:handle(sig, x, y)
-  -- then check children
-  for i, c in ipairs(self.children) do
-    if x and y then
+  -- check children
+  if x and y then
+    for i, c in ipairs(self.children) do
+      if x >= c.x and y >= c.y and x < c.x + c.w and y < c.y + c.h then
+        self.focused = c:handle(sig, x - c.x + 1, y - c.y + 1) or self.focused
+      end
     end
+  elseif self.focused then
+    self.focused:handle(sig)
   end
 end
 
