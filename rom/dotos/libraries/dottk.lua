@@ -89,11 +89,143 @@ function tk.Window:handle(sig, x, y)
   if x and y then
     for i, c in ipairs(self.children) do
       if x >= c.x and y >= c.y and x < c.x + c.w and y < c.y + c.h then
-        self.focused = c:handle(sig, x - c.x + 1, y - c.y + 1) or self.focused
+        local nel = c:handle(sig, x - c.x + 1, y - c.y + 1)
+        self.focused = nel or self.focused
+        if nel then return nel end
       end
     end
   elseif self.focused then
     self.focused:handle(sig)
+  end
+end
+
+-- View: scrollable view of an item
+-- this can have scrollbars attached, and is a container for an
+-- arbitrarily sized element.  it is probably a good idea for
+-- this element to only ever be a layout engine item such as a
+-- grid.
+--
+-- to create an element for this, just create e.g. a tk.Grid
+-- whose parent window is the same as the view's
+tk.View = tk.Element:inherit()
+function tk.View:init(args)
+  checkArg(1, args, "table")
+  checkArg("window", args.window, "table")
+  checkArg("w", args.w, "number")
+  checkArg("h", args.h, "number")
+  checkArg("child", args.child, "table")
+
+  self.window = args.window
+  self.surface = args.window.surface
+  self.buffer = surface.new(args.w, args.h)
+  self.x = 1
+  self.y = 1
+  self.w = args.w
+  self.h = args.h
+  self.xscrollv = 0
+  self.yscrollv = 0
+  self.child = args.child
+  -- the child element of this should *not* be a child of the
+  -- parent window, so remove it from the parent window
+  self.child.window.children[self.child.childid] = nil
+  self.child.surface = surface.new(self.child.w, self.child.h)
+
+  self.childid = #args.window.children+1
+  args.window.children[self.childid] = self
+end
+
+function tk.View:xscroll(n)
+  checkArg(1, n, "number")
+  self.xscrollv = math.max(0, math.min(self.child.w - self.w))
+end
+
+function tk.View:yscroll(n)
+  checkArg(1, n, "number")
+  self.yscrollv = math.max(0, math.min(self.child.h - self.h))
+end
+
+function tk.View:draw(x, y)
+  self.child:draw(1, 1)
+  self.child.surface:blit(self.buffer, 1 - self.xscrollv, 1 - self.yscrollv)
+  self.buffer:blit(self.surface, x, y)
+end
+
+function tk.View:handle(sig, x, y)
+  if x and y then x, y = x - self.xscrollv, y - self.yscrollv end
+  return self.child:handle(sig, x, y)
+end
+
+tk.Grid = tk.Element:inherit()
+function tk.Grid:init(args)
+  checkArg(1, args, "table")
+  checkArg("window", args.window, "table")
+  checkArg("w", args.w, "number", "nil")
+  checkArg("h", args.h, "number", "nil")
+  local window = args.window
+  self.window = window
+  local surface = window.surface
+  self.x = 1
+  self.y = 1
+  self.w = args.w or window.w
+  self.h = args.h or window.h
+  self.rows = 0
+  self.colums = 0
+  self.children = {}
+  self.rheight = math.floor(self.h / self.rows)
+  self.cwidth = math.floor(self.w / self.columns)
+  self.childid = #window.children+1
+  window.children[self.childid] = self
+end
+
+function tk.Grid:addChild(row, col, element)
+  checkArg(1, row, "number")
+  checkArg(2, col, "number")
+  checkArg(3, element, "table")
+  if row < 1 or row > self.rows then error("bad argument #1 (invalid row)") end
+  if col < 1 or col > self.columns then
+    error("bad argument #2 (invalid column)") end
+  self.children[row] = self.children[row] or {}
+  self.children[row][col] = element
+end
+
+function tk.Grid:draw(x, y)
+  for r, row in ipairs(self.children) do
+    for c, col in ipairs(row) do
+      local cw, ch = col.w, col.h
+      col.w = math.min(self.width, col.w)
+      col.h = math.min(self.rheight, col.h)
+      col:draw(x + self.cwidth * (c-1), y + self.rheight * (r-1))
+      col.w = cw
+      col.h = ch
+    end
+  end
+end
+
+function tk.Grid:resize(w, h)
+  checkArg(1, w, "number")
+  checkArg(2, h, "number")
+  self.w = w
+  self.h = h
+  self.rheight = math.floor(self.h / self.rows)
+  self.cwidth = math.floor(self.w / self.columns)
+  for r, row in ipairs(self.children) do
+    for c, col in ipairs(row) do
+      col.w = math.floor(self.w / self.columns)
+      col.h = math.floor(self.h / self.rows)
+    end
+  end
+end
+
+function tk.Grid:handle(sig, x, y)
+  if x and y then
+    for r, row in ipairs(self.children) do
+      for c, col in ipairs(row) do
+        if x >= self.cwidth * (c-1) and y >= self.rheight * (r-1) and
+           x < self.cwidth * c and y < self.rheight * r then
+        return col:handle(sig, x - self.cwidth * (c-1),
+          y - self.rheight * (r-1))
+      end
+    end
   end
 end
 
