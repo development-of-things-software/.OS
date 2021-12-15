@@ -10,6 +10,7 @@ local replacements = {
   ["{WHITE}"] = "\27[97m",
   ["{BLUE}"] = "\27[94m",
   ["{YELLOW}"] = "\27[93m",
+  ["{ORANGE}"] = "\27[33m"
 }
 
 local shpath = settings.get("/.dotsh.cfg", "path") or

@@ -2,8 +2,6 @@
 
 local dotsh = require("dotsh")
 
-print("\27[33m -- \27[93mDoT Shell v0\27[33m -- \27[39m")
-
 local handle = io.open("/user/motd.txt", "r")
 if not handle then
   handle = io.open("/dotos/motd.txt", "r")

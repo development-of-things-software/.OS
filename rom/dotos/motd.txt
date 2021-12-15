@@ -1,3 +1,5 @@
+{ORANGE} -- {YELLOW}DoT Shell v1.0{ORANGE} --
+
 {RED}#{WHITE} For help type {BLUE}help{WHITE}.
 {RED}#{WHITE} To return to the DoT UI, run {BLUE}set interface
   dotui{WHITE}, then {BLUE}power -r{WHITE}.
