@@ -30,6 +30,9 @@ local palette = {
   [32768] = 0xFFFFFF
 }
 
+-- compatibility with CC:T 1.89.2
+table.unpack = table.unpack or unpack
+
 -- package.lua nils out term later
 local term = term
 for k, v in pairs(palette) do

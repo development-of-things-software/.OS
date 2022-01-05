@@ -56,6 +56,13 @@ do
     return "/" .. getDir(p)
   end
 
+  -- override: fs.exists
+  local exists = fs.exists
+  function fs.exists(path)
+    checkArg(1, path, "string")
+    return exists(resolve(path))
+  end
+
   -- override: fs.list
   local list = fs.list
   function fs.list(path)
@@ -65,8 +72,12 @@ do
     if not _ then return nil, files end
     if path == "/" then
       -- inject /dotos and /user into the root listing
-      files[#files+1] = "dotos"
-      files[#files+1] = "user"
+      if not exists("/dotos") then
+        files[#files+1] = "dotos"
+      end
+      if not exists("/user") then
+        files[#files+1] = "user"
+      end
     end
     return files
   end
@@ -76,13 +87,6 @@ do
   function fs.getSize(path)
     checkArg(1, path, "string")
     return getSize(resolve(path))
-  end
-
-  -- override: fs.exists
-  local exists = fs.exists
-  function fs.exists(path)
-    checkArg(1, path, "string")
-    return exists(resolve(path))
   end
 
   -- override: fs.isDir

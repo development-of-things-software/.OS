@@ -62,8 +62,18 @@ local substitutions = {
   ["6"] = "pageDown"
 }
 
+-- string.unpack isn't a thing in 1.12.2's CC:T 1.98.2, so use this instead
+-- because this is all we need
+local function strunpack(str)
+  local result = 0
+  for c in str:reverse():gmatch(".") do
+    result = bit32.lshift(result, 8) + c:byte()
+  end
+  return result
+end
+
 local function getChar(char)
-  local byte = string.unpack("<I"..#char, char)
+  local byte = strunpack(char)
   if byte + 96 > 255 then
     return utf8.char(byte)
   end
