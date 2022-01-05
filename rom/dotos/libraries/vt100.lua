@@ -86,7 +86,7 @@ function vts:raw_write(str)
       self.cx = self.cx + #chunk
       corral(self)
     end
-    if nnl then
+    if nnl and self.cx > 1 then
       self.cx = 1
       self.cy = self.cy + 1
     end
@@ -143,7 +143,7 @@ function vts:write(str)
         elseif csc == "f" or csc == "H" then
           args[1] = args[1] or 1
           args[2] = args[2] or 1
-          self.cy = math.max(1, math.min(self.surface.h, args[1]))
+          self.cy = math.max(1, math.min(self.surface.h-1, args[1]))
           self.cx = math.max(1, math.min(self.surface.w, args[2]))
         elseif csc == "J" then
           local c = args[1] or 0
@@ -191,7 +191,8 @@ function vts:write(str)
           end
         elseif csc == "n" then
           if args[1] == 6 then
-            self.ibuf = self.ibuf .. "\27["..self.cy..";"..self.cx.."R"
+            self.ibuf = self.ibuf .. string.format("\27[%d;%dR",
+              self.cy, self.cx)
           end
         elseif csc == "S" then
           self:scroll(args[1] or 1)
