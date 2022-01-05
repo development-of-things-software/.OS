@@ -15,15 +15,24 @@ local base = "https://raw.githubusercontent.com/development-of-things-software/.
 -- get file list
 local handle = assert(http.get(base .. "files.txt"))
 
-for line in handle.readLine do
-  local dir = fs.getDir(line)
+local function download(file)
+  local dir = fs.getDir(file)
   dir = fs.combine(installdir, dir)
   fs.makeDirectory(dir)
   print(line)
   local dl = assert(http.get(base .. line, nil, true))
   local data = dl.readAll()
   dl.close()
-  local whand = io.open(fs.combine(installdir, line), "wb")
+  local whand = io.open(fs.combine(installdir, file), "wb")
   whand:write(data)
   whand:close()
 end
+
+for line in handle.readLine do
+  download(line)
+end
+
+handle.close()
+
+download("unbios.lua")
+fs.move(fs.combine(installdir, "unbios.lua"), fs.combine(installdir, "startup.lua"))
