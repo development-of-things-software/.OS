@@ -1,6 +1,7 @@
 -- .INIT --
 
 local fs = require("fs")
+local dotos = require("dotos")
 
 dotos.log("[.init] running startup scripts")
 

@@ -44,6 +44,8 @@ _G.dotos = {
   path = "/"..osPath,
   show_logs = true
 }
+-- this is removed in package.lua later
+local dotos = dotos
 
 term.setBackgroundColor(0x1)
 term.setTextColor(0x8000)

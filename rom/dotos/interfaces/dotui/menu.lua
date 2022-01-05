@@ -1,5 +1,6 @@
 -- .UI menu --
 
+local dotos = require("dotos")
 local dotui = require("dotui")
 local fs = require("fs")
 

@@ -45,10 +45,14 @@ package.searchers = {
 
 local fs = fs
 local term = term
-_G.fs = nil
-_G.term = nil
-package.loaded.fs = fs
-package.loaded.term = term
+local function remove(k)
+  package.loaded[k] = _G[k]
+  _G[k] = nil
+end
+for _, api in ipairs({"fs", "term", "http", "peripheral", "periphemu",
+    "mounter", "config", "redstone", "dotos"}) do
+  remove(api)
+end
 
 function package.searchpath(name, path, sep, rep)
   checkArg(1, name, "string")

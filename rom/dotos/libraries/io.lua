@@ -1,6 +1,8 @@
 -- io library --
 
 local osPath = ...
+-- package.lua nils this later but hasn't done so yet because it depends on io
+local dotos = dotos
 
 -- the package library nils _G.fs later, so keep it here
 local fs = fs

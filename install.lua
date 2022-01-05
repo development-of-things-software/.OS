@@ -40,3 +40,5 @@ handle.close()
 
 download("unbios.lua")
 fs.move(fs.combine(installdir, "unbios.lua"), fs.combine(installdir, "startup.lua"))
+
+fs.makeDir(fs.combine(installdir, "/users/admin"))

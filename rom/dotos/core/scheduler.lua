@@ -2,6 +2,7 @@
 
 local users = dofile("/dotos/core/users.lua")
 local fs = require("fs")
+local dotos = require("dotos")
 
 local threads = {}
 local current = 0
@@ -23,9 +24,13 @@ function dotos.spawn(func, name, root)
   checkArg(2, name, "string")
   checkArg(3, root, "string", "nil")
   local parent = threads[current] or default_thread
+  local nenv = {}
+  if parent.env then
+    for k,v in pairs(parent.env) do nenv[k] = v end
+  end
   local thread = {
     coro = coroutine.create(func),
-    env = setmetatable({}, {__index = parent.env or {}}),
+    env = nenv,
     io = {
       stdin = parent.io.stdin or default_stream,
       stdout = parent.io.stdout or default_stream,

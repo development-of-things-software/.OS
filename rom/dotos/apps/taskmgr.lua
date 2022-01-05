@@ -1,5 +1,6 @@
 -- task manager --
 
+local dotos = require("dotos")
 local dotui = require("dotui")
 local colors = require("dotui.colors")
 

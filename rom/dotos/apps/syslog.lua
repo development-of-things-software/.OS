@@ -1,5 +1,6 @@
 -- view system logs --
 
+local dotos = require("dotos")
 local dotui = require("dotui")
 local surface = require("surface")
 local textutils = require("textutils")

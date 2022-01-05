@@ -1,5 +1,6 @@
 -- .SH: a simple shell --
 
+local dotos = require("dotos")
 local dotsh = require("dotsh")
 local readline = require("readline")
 

@@ -1,5 +1,6 @@
 -- the .OS file manager --
 
+local dotos = require("dotos")
 local dotui = require("dotui")
 local colors = require("dotui.colors")
 local fs = require("fs")
