@@ -1,0 +1,21 @@
+{ORANGE}=={YELLOW} dotsh {ORANGE}=={WHITE}
+
+{YELLOW}dotsh{WHITE} (stylized: {YELLOW}.SH{WHITE}) is the default command interpreter and interface for {YELLOW}.OS{WHITE}.  It sports a unique curly-bracket-based shell syntax which described later in this help text.
+
+See also the page on {YELLOW}line editing{WHITE}.
+
+{ORANGE}--{YELLOW} Weird Syntax {ORANGE}--{WHITE}
+{YELLOW}.SH{WHITE}'s special syntax is based around balanced sets of curly braces ({RED}{}{WHITE}).  If inside these is a valid argument, then its corresponding action will be performed and it will be replaced with the result.
+
+The following special keywords may be present:
+  {ORANGE}-{RED} RED{WHITE}     insert a vt100 escape for red color
+  {ORANGE}-{RED} WHITE{WHITE}   insert a vt100 escape for white color
+  {ORANGE}-{RED} BLUE{WHITE}    insert a vt100 escape for blue color
+  {ORANGE}-{RED} YELLOW{WHITE}  insert a vt100 escape for yellow color
+  {ORANGE}-{RED} ORANGE{WHITE}  insert a vt100 escape for orange color
+
+The following special syntax is accepted:
+  {ORANGE}.{YELLOW}foo{WHITE}
+    Execute command {YELLOW}foo{WHITE} and substitute its output.
+
+  {ORANGE}

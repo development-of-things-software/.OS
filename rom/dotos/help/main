@@ -1,3 +1,8 @@
-== .OS Help ==
+{ORANGE}== {YELLOW}.OS Help {ORANGE}=={WHITE}
 
 This is the .OS help database.  In it you will find documentation for most things relating to .OS and its usage.
+
+You can gain a more complete picture of the available help pages by looking in {YELLOW}/dotos/help{WHITE}.  The {BLUE}help{WHITE} utility will also search {YELLOW}/shared/help{WHITE}.
+
+Some pages you may wish to look at:
+  {YELLOW}dotsh {ORANGE}-{YELLOW} dotui {ORANGE}-{YELLOW} line editing{WHITE}

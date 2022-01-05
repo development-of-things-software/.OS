@@ -12,7 +12,7 @@ end
 local defaultConfig = [[
 keyboardLayout="]] .. keymap .. [["
 colorScheme="Light"
-interface="dotui"
+interface="dotsh"
 ]]
 
 if not fs.exists("/.dotos.cfg") then
