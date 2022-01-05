@@ -4,7 +4,7 @@ local package = {}
 
 package.config = "/\n;\n?\n!\n-"
 package.cpath = ""
-package.path = "/dotos/libraries/?.lua;/user/libraries/?.lua"
+package.path = "/dotos/libraries/?.lua;/user/libraries/?.lua;/shared/libaries/?.lua"
 package.loaded = {
   _G = _G,
   io = io,
@@ -49,8 +49,10 @@ local function remove(k)
   package.loaded[k] = _G[k]
   _G[k] = nil
 end
-for _, api in ipairs({"fs", "term", "http", "peripheral", "periphemu",
-    "mounter", "config", "redstone", "dotos"}) do
+package.loaded.rawhttp = http
+_G.http = nil
+for _, api in ipairs({"fs", "term","peripheral", "periphemu", "mounter",
+    "config", "redstone", "rs", "dotos"}) do
   remove(api)
 end
 

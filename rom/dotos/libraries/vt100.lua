@@ -5,24 +5,26 @@ local textutils = require("textutils")
 local colors = require("colors")
 local keys = require("keys")
 
+assert(colors.loadPalette("vga"))
+
 local vtc = {
   -- standard 8 colors
   colors.black,
   colors.red,
   colors.green,
-  colors.orange,
+  colors.yellow,
   colors.blue,
   colors.purple,
-  colors.brown,
+  colors.cyan,
   colors.lightGray,
   -- "bright" colors
-  colors.gray,
+  colors.darkGray,
   colors.lightRed,
   colors.lightGreen,
-  colors.yellow,
+  colors.lightYellow,
   colors.lightBlue,
-  colors.magenta,
-  colors.cyan,
+  colors.lightPurple,
+  colors.lightCyan,
   colors.white
 }
 
@@ -174,13 +176,13 @@ function vts:write(str)
             elseif c == 28 then
               self.echo = true
             elseif c > 29 and c < 38 then
-              self.surface:fg(vtc[c - 29])
+              self.surface:fg(2^(c-30))--vtc[c - 29])
             elseif c > 39 and c < 48 then
-              self.surface:bg(vtc[c - 39])
+              self.surface:bg(2^(c-40))--vtc[c - 39])
             elseif c > 89 and c < 98 then
-              self.surface:fg(vtc[c - 81])
+              self.surface:fg(2^(c-82))--vtc[c - 81])
             elseif c > 99 and c < 108 then
-              self.surface:bg(vtc[c - 91])
+              self.surface:bg(2^(c-92))--vtc[c - 91])
             elseif c == 39 then
               self.surface:fg(colors.lightGray)
             elseif c == 49 then
@@ -320,6 +322,7 @@ function lib.new(surf)
       if new.term then
         local nw, nh = new.term.getSize()
         new.surface:resize(nw, nh + 1)
+        new.cy = math.min(new.cy, nh)
       end
     end)
   }, {__index = vts, __metatable = {}})

@@ -1,9 +1,9 @@
 -- list --
 
 local args, opts = require("argparser")(...)
+local textutils = require("textutils")
 local dotos = require("dotos")
 local fs = require("fs")
-local textutils = require("textutils")
 
 local path = args[1] or dotos.getpwd()
 if not fs.isDir(path) then

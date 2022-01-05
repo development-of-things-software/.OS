@@ -16,6 +16,7 @@ for i=1, #scripts, 1 do
   dofile("/dotos/startup/" .. scripts[i])
 end
 
+os.queueEvent("dummy")
 dotos.log("[.init] entering background")
 while true do
   coroutine.yield()

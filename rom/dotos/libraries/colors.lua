@@ -1,16 +1,7 @@
 -- color constants --
 
-local order = {
-  "black",
-  "gray",   "lightGray",
-  "red",    "lightRed",
-  "green",  "lightGreen",
-  "blue",   "lightBlue",
-  "purple", "magenta",
-  "brown",  "yellow",
-  "orange", "cyan",
-  "white"
-}
+local term = require("term")
+local fs = require("fs")
 
 -- the CraftOS color set is designed to match bundled cables, so provide
 -- that set of colors here too
@@ -31,10 +22,32 @@ local bundled_order = {
 -- }
 local colors = {}
 colors.bundled = {}
+
+colors.path = "/dotos/resources/palettes/?.lua;/user/resources/palettes/?.lua;/shared/resources/palettes/?.lua"
+
+function colors.loadPalette(name)
+  local palette, order
+  if fs.exists(name) then
+    palette, order = assert(loadfile(name, nil, {}))()
+  else
+    local file, err = package.searchpath(name, colors.path)
+    if not file then
+      return nil, err
+    end
+    palette, order = assert(loadfile(file, nil, {}))()
+  end
+  for i=1, 16, 1 do
+    colors[order[i]] = 2^(i-1)
+    term.setPaletteColor(colors[order[i]], palette[i])
+  end
+  return true
+end
+
 for i=1, 16, 1 do
-  colors[order[i]] = 2^(i-1)
   colors.bundled[bundled_order[i]] = 2^(i-1)
 end
+
+colors.loadPalette("default")
 
 local blit_colors = {}
 for i=1, 16, 1 do

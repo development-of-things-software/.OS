@@ -15,7 +15,7 @@ local replacements = {
 }
 
 local shpath = settings.get("/.dotsh.cfg", "path") or
-  "/dotos/binaries;/user/binaries"
+  "/dotos/binaries;/user/binaries;/shared/binaries"
 settings.set("/.dotsh.cfg", "path", shpath)
 
 local function check(path)

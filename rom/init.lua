@@ -202,4 +202,5 @@ if not init then
 end
 dotos.spawn(init, ".init")
 
+os.queueEvent("dummy")
 loop()
