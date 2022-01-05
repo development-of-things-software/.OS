@@ -23,6 +23,8 @@ local function download(file)
   local dl = assert(http.get(base .. file, nil, true))
   local data = dl.readAll()
   dl.close()
+  -- strip /rom
+  file = file:gsub("/rom", "")
   local whand = assert(io.open(fs.combine(installdir, file), "wb"))
   whand:write(data)
   whand:close()
