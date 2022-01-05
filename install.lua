@@ -16,15 +16,16 @@ local base = "https://raw.githubusercontent.com/development-of-things-software/.
 local handle = assert(http.get(base .. "files.txt"))
 
 local function download(file)
+  -- strip /rom
+  local ofile = file
+  file = file:gsub("/rom", "")
   local dir = fs.getDir(file)
   dir = fs.combine(installdir, dir)
   fs.makeDir(dir)
   print(file)
-  local dl = assert(http.get(base .. file, nil, true))
+  local dl = assert(http.get(base .. ofile, nil, true))
   local data = dl.readAll()
   dl.close()
-  -- strip /rom
-  file = file:gsub("/rom", "")
   local whand = assert(io.open(fs.combine(installdir, file), "wb"))
   whand:write(data)
   whand:close()
