@@ -2,3 +2,5 @@
   by DoT Software
 
 DoT OS (stylized as .OS) is a powerful, user-friendly, graphical OS for ComputerCraft.
+
+Install with `wget run https://raw.githubusercontent.com/development-of-things-software/.OS/primary/install.lua PATH`, replacing `PATH` with the path under which to install .OS.  .OS will not fit in a disk, so `/` is probably the best option.
