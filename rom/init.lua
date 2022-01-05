@@ -2,6 +2,59 @@
 
 local osPath = ...
 
+-- give the option to boot CraftOS, but only if it's present.
+-- due to the way ComputerCraft is licensed, i don't ship the
+-- BIOS with .OS, but you can put it at /craftos-bios.lua and
+-- get the option to load CraftOS from ROM.
+if fs.exists("/craftos-bios.lua") then
+  local sel = 1
+  local timers = {
+    [os.startTimer(1)] = 4,
+    [os.startTimer(2)] = 3,
+    [os.startTimer(3)] = 2,
+    [os.startTimer(4)] = 1,
+    [os.startTimer(5)] = 0
+  }
+  local function nl()
+    local x,y=term.getCursorPos()
+    term.setCursorPos(1,y+1)
+  end
+  local trem = 5
+  while true do
+    term.setBackgroundColor(0x8000)
+    term.clear()
+    term.setTextColor(1)
+    term.setCursorPos(1, 1)
+    term.write("** .os boot manager **")nl()
+    term.write("please select an option")nl()
+    term.write("(use W/S for up/down, D to select)")nl()
+    term.write("time left: "..trem)nl()nl()
+    term.write((sel == 1 and ":: " or "   ") ..
+      ".OS (from "..osPath..")")nl()
+    term.write((sel == 2 and ":: " or "   ") ..
+      "CraftOS (from /craftos-bios.lua)")nl()
+    local sig = table.pack(coroutine.yield())
+    if sig[1] == "char" then
+      if sig[2] == "w" or sig[2] == "s" then
+        sel = (sel == 1 and 2) or 1
+      elseif sig[2] == "d" then
+        if sel == 2 then
+          local handle, err = assert(fs.open("/craftos-bios.lua", "r"))
+          local data = handle.readAll()
+          handle.close()
+          assert((loadstring or load)(data, "=/craftos-bios", "t", _G))()
+          return
+        else
+          break
+        end
+      end
+    elseif sig[1] == "timer" then
+      trem = timers[sig[2]] or trem
+      if trem == 0 then break end
+    end
+  end
+end
+
 local palette = {
   -- black
   [00001] = 0x000000,

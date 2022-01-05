@@ -13,6 +13,7 @@ if path:sub(1,1) ~= "/" then path = fs.combine(dotos.getpwd(), path) end
 local files = fs.list(path)
 table.sort(files)
 
+local w = require("termio").getTermSize()
 local out = ""
 local x = 0
 local len = 0
@@ -32,7 +33,7 @@ for i, file in ipairs(files) do
       end
     end
     file = textutils.padRight(file, len)
-    if x + #file + 3 > 51 then
+    if (x + #file + 3 > w or opts.one) and x > 0 then
       x = 0
       out = out .. "\n"
     end

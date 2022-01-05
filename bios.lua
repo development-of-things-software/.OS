@@ -60,12 +60,12 @@ end
 local function checkFile(f)
   if fs.exists(f) then
     tprintf("Found %s - press any key within 0.5s to skip", f)
-    local id = os.startTimer(0.5)
+    local id = os.startTimer(f:sub(1,4) == "/rom" and 0 or 0.5)
     while true do
       local evt = coroutine.yield()
       if evt == "timer" then
         boot(f)
-      elseif evt == "char" then
+      elseif evt == "char" and f:sub(1,4) ~= "/rom" then
         tprintf("Skipping!")
         os.cancelTimer(id)
         break
