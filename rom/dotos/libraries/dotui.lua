@@ -1,5 +1,6 @@
 -- .UI --
 
+local dotos = require("dotos")
 local textutils = require("textutils")
 local colors = require("colors")
 local lerp = require("advmath").lerp

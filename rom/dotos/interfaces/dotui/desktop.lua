@@ -1,5 +1,6 @@
 -- .OS Desktop --
 
+local dotos = require("dotos")
 local dotui = require("dotui")
 local colors = require("colors")
 local types = require("sigtypes")

@@ -1,5 +1,6 @@
 -- shutdown prompt --
 
+local dotos = require("dotos")
 local dotui = require("dotui")
 
 local window, base = dotui.util.basicWindow(3, 3, 24, 10, "Shutdown")

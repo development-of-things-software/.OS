@@ -1,5 +1,7 @@
 -- some .OS core functions --
 
+local dotos = require("dotos")
+
 -- os library extensions --
 function os.sleep(s)
   local tid = os.startTimer(s)

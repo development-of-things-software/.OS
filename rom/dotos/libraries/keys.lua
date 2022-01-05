@@ -1,5 +1,6 @@
 -- keyboard related things --
 
+local dotos = require("dotos")
 local settings = require("settings")
 local kmap = settings.sysget("keyboardLayout")
 

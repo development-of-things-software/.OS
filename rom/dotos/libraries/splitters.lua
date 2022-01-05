@@ -26,7 +26,7 @@ function lib.complex(str)
   for c in str:gmatch(".") do
     if c == '"' then
       instr = not instr
-      word = word .. c
+    --  word = word .. c
     elseif instr then
       word = word .. c
     elseif c == " " then

@@ -1,5 +1,6 @@
 -- UI toolkit demo --
 
+local dotos = require("dotos")
 local dotui = require("dotui")
 local colors = require("colors")
 

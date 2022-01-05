@@ -1,5 +1,6 @@
 -- VT100 layer over top of a surface --
 
+local dotos = require("dotos")
 local textutils = require("textutils")
 local colors = require("colors")
 local keys = require("keys")
@@ -169,7 +170,7 @@ function vts:write(str)
               self.surface:bg(colors.black)
               self.echo = true
             elseif c == 8 then
-              --self.echo = false
+              self.echo = false
             elseif c == 28 then
               self.echo = true
             elseif c > 29 and c < 38 then

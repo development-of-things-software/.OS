@@ -1,5 +1,6 @@
 -- settings app --
 
+local dotos = require("dotos")
 local dotui = require("dotui")
 local settings = require("settings")
 

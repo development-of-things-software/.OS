@@ -1,5 +1,6 @@
 -- .SH: text-based shell for power-users --
 
+local dotos = require("dotos")
 local term = require("term")
 local sigtypes = require("sigtypes")
 

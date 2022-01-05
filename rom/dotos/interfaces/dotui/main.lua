@@ -1,13 +1,14 @@
 -- main .UI file --
 -- this is the low-level-ish window manager
 
-dotos.log("[.ui] The DoT UI is now starting")
-
+local dotos = require("dotos")
 local term = require("term")
 local surf = require("surface")
 local colors = require("colors")
 local sigtypes = require("sigtypes")
 local cfg = require("settings").load("/.dotos.cfg")
+
+dotos.log("[.ui] The DoT UI is now starting")
 
 package.loaded["dotui.colors"] =
   dofile("/dotos/resources/dotui/colors/"..cfg.colorScheme..".lua")

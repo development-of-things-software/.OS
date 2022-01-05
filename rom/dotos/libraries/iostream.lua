@@ -1,6 +1,7 @@
 -- iostream: Create an IO stream from a surface --
 -- allows terminals and whatnot --
 
+local dotos = require("dotos")
 local vt = require("vt100")
 
 local lib = {}

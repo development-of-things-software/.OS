@@ -1,5 +1,6 @@
 -- .SH: a simple shell (library-ified) --
 
+local dotos = require("dotos")
 local textutils = require("textutils")
 local splitters = require("splitters")
 local settings = require("settings")
@@ -81,6 +82,7 @@ local aliases = {
 }
 
 execute = function(input, capture, positional)
+  if #input == 0 then return end
   local tokens = splitters.complex(input)
   local cmd = tokens[1]
   if aliases[cmd] then cmd = aliases[cmd] end
@@ -120,36 +122,64 @@ lib.execute = execute
 
 -- fancy syntax
 setmetatable(replacements, {__index = function(_, k)
-  k = k:sub(2, -2) -- strip outer {}
-  if k:sub(1,1) == "." then -- {.cmd bla}: execute command
-    return execute(k:sub(2), true)
-  elseif k:sub(1,1) == "$" then
-    -- {$VAR}: get environment variable
-    if k:sub(2,2) == "@" or k:sub(2,2) == "+" then
-      -- {$@VAR=VAL}: set environment variable
-      -- {$+VAR=VAL}: set environment variable *and* return VAL
-      local key, val = k:match("^%$.(.-)=(.+)")
-      os.setenv(key, val)
-      if k:sub(2,2) == "+" then
-        return val
+  replacements[k] = function()
+    replacements[k] = nil
+    k = k:sub(2, -2) -- strip outer {}
+    if k:sub(1,1) == "." then
+      -- {.cmd bla}: execute command and return its output, like bash's $(cmd).
+      if k:sub(2,2) == ">" or k:sub(2,2) == "+" then
+        -- {.>file cmd bla}: execute command and put its output into 'file',
+        --   like unix shells' cmd bla > file
+        -- {.+file cmd bla}: do this and still return the output, similar to
+        --   the 'tee' command
+        local fsp = k:find(" ")
+        if not fsp then return "" end
+        local file = k:sub(3, fsp - 1)
+        local output = execute(k:sub(fsp+1), true)
+        local handle, err = io.open(file, "w")
+        if not handle then error(err, 0) end
+        handle:write(output)
+        handle:close()
+        return ""
+      --[[ these will probably be supported in the future
+      elseif k:sub(2,2) == "<" then
+        -- {.<file cmd bla}: execute command and put its standard input as
+        --   'file'
+      elseif k:sub(2,2) == "|" then
+        -- {.|foo bar; baz bla}: pipe commands]]
+      else
+        return execute(k:sub(2), true)
       end
-    elseif k:sub(2,2) == "!" then
-      -- {$!VAR}: unset environment variable
-      os.setenv(k:sub(3), nil)
-    elseif k == "$?" then
-      -- {$?}: all environment variables
-      local env = os.getenv()
-      local lines = {}
-      for k,v in pairs(env) do
-        lines[#lines+1] = k .. "=" .. v
+    elseif k:sub(1,1) == "$" then
+      -- {$VAR}: get environment variable
+      if k:sub(2,2) == "@" or k:sub(2,2) == "+" then
+        -- {$@VAR=VAL}: set environment variable
+        -- {$+VAR=VAL}: set environment variable *and* return VAL
+        local key, val = k:match("^%$.(.-)=(.+)")
+        os.setenv(key, val)
+        if k:sub(2,2) == "+" then
+          return val
+        end
+        return ""
+      elseif k:sub(2,2) == "!" then
+        -- {$!VAR}: unset environment variable
+        os.setenv(k:sub(3), nil)
+      elseif k:sub(2,2) == "?" then
+        -- {$?}: all environment variables
+        local env = os.getenv()
+        local lines = {}
+        for k,v in pairs(env) do
+          lines[#lines+1] = k .. "=" .. v
+        end
+        table.sort(lines)
+        return table.concat(lines, "\n")
+      else
+        return os.getenv(k:sub(2)) or ""
       end
-      table.sort(lines)
-      return table.concat(lines, "\n")
-    else
-      return os.getenv(k:sub(2)) or ""
+      return ""
     end
-    return ""
   end
+  return replacements[k]
 end})
 
 function lib.expand(input)

@@ -1,5 +1,6 @@
 -- the .OS file manager --
 
+local dotos = require("dotos")
 local dotui = require("dotui")
 local colors = require("dotui.colors")
 local fs = require("fs")
@@ -127,7 +128,7 @@ buildFileUI = function(dir)
     local text = string.format("%s | %s | %s | %s",
       file, textutils.padRight(size, 6),
       attr.isDir and "dir " or "file",
-      os.date("%Y/%m/%d %H:%M", math.floor(attr.modified / 1000)))
+      os.date("%Y/%m/%d %H:%M", math.floor((attr.modified or 0) / 1000)))
     fents[#fents+1] = {
       absolute = absolute, file = file,
     }

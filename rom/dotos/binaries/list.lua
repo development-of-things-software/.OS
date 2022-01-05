@@ -1,6 +1,7 @@
 -- list --
 
 local args, opts = require("argparser")(...)
+local dotos = require("dotos")
 local fs = require("fs")
 local textutils = require("textutils")
 

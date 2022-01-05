@@ -30,6 +30,9 @@ local palette = {
   [32768] = 0xFFFFFF
 }
 
+-- compatibility with CC:T 1.89.2
+table.unpack = table.unpack or unpack
+
 -- package.lua nils out term later
 local term = term
 for k, v in pairs(palette) do
@@ -41,6 +44,8 @@ _G.dotos = {
   path = "/"..osPath,
   show_logs = true
 }
+-- this is removed in package.lua later
+local dotos = dotos
 
 term.setBackgroundColor(0x1)
 term.setTextColor(0x8000)
