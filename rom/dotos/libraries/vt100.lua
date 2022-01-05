@@ -267,6 +267,7 @@ end
 function vts:close()
   dotos.drop(self.specialhandler)
   dotos.drop(self.charhandler)
+  dotos.drop(self.resizehandler)
 end
 
 function lib.new(surf)
@@ -315,6 +316,11 @@ function lib.new(surf)
     end), charhandler = dotos.handle("char", function(_, c)
       if new.echo then new:write(c) end
       new.ibuf = new.ibuf .. c
+    end), resizehandler = dotos.handle("term_resize", function()
+      if new.term then
+        local nw, nh = new.term.getSize()
+        new.surface:resize(nw, nh + 1)
+      end
     end)
   }, {__index = vts, __metatable = {}})
   return new
