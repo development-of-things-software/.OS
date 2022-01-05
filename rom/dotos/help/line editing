@@ -1,4 +1,4 @@
-{ORANGE}=={YELLOW} Line Editing {ORANGE}=={WHITE}
+ {ORANGE}=={YELLOW} Line Editing {ORANGE}=={WHITE}
 
 {YELLOW}.SH{WHITE} uses a line editing scheme very similar to GNU Readline.  It supports the following shortcuts:
 
@@ -6,3 +6,5 @@
   {ORANGE}-{BLUE} Ctrl-E{WHITE}  Cursor to end of line
 
 Arrow keys move the cursor left and right.  Pressing {BLUE}Enter{WHITE} sends the string of text to be processed by the application (usually {YELLOW}.SH{WHITE} or {YELLOW}Lua{WHITE}).
+
+ {ORANGE}=={YELLOW} Line Editing {ORANGE}=={WHITE}

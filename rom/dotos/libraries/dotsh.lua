@@ -7,11 +7,12 @@ local settings = require("settings")
 local fs = require("fs")
 
 local replacements = {
-  ["{RED}"] = "\27[91m",
-  ["{WHITE}"] = "\27[37m",
-  ["{BLUE}"] = "\27[94m",
+  ["{RED}"]    = "\27[91m",
+  ["{WHITE}"]  = "\27[37m",
+  ["{BLUE}"]   = "\27[94m",
   ["{YELLOW}"] = "\27[93m",
-  ["{ORANGE}"] = "\27[33m"
+  ["{ORANGE}"] = "\27[33m",
+  ["{GREEN}"]  = "\27[92m",
 }
 
 local shpath = settings.get("/.dotsh.cfg", "path") or

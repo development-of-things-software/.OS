@@ -13,11 +13,17 @@ if handle then
   handle:close()
 end
 
+os.setenv("SHLVL", (os.getenv("SHLVL") or 0) + 1)
+
+local function drawprompt()
+  io.write(string.format("\27[93;49m%s\27[39m: \27[94m%s\27[93m$\27[39m ",
+    dotos.getuser(), dotos.getpwd()))
+end
+
 local hist = {}
 local rlopts = {history = hist, exit = os.exit}
 while true do
-  io.write(string.format("\27[33;49m%s\27[39m: \27[34m%s\27[33m$\27[39m ",
-    dotos.getuser(), dotos.getpwd()))
+  drawprompt()
   local input = readline(rlopts)
 
   if #input > 0 then

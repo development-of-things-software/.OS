@@ -1,1 +1,1 @@
--- .WM: a simple-ish communications protocol --
+-- .WM: a simple-ish communications protocol for window management --

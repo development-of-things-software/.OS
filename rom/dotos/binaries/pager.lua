@@ -24,12 +24,13 @@ local printed = 0
 for _,file in ipairs(args) do
   local name = require("fs").getName(file)
   local handle = assert(io.open(file, "r"))
-  local lines = require("textutils").lines(handle:read("a"))
+  local data = handle:read("a")
   handle:close()
+  if opts.E then
+    data = dotsh.expand(data)
+  end
+  local lines = require("textutils").lines(data)
   for i=1, #lines, 1 do
-    if opts.E then
-      lines[i] = dotsh.expand(lines[i])
-    end
     print(lines[i])
     printed = printed + math.max(1,
       math.ceil(#lines[i]:gsub("\27%[[%d;]+%a", "") / 51))

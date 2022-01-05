@@ -1,6 +1,7 @@
 -- scheduler --
 
 local users = dofile("/dotos/core/users.lua")
+package.loaded.users = users
 local fs = require("fs")
 local dotos = require("dotos")
 
@@ -107,6 +108,9 @@ end
 
 function dotos.setuser(name)
   checkArg(1, name, "string")
+  if dotos.getuser() ~= "admin" then
+    return nil, "permission denied"
+  end
   if users.exists(name) then
     threads[current].user = name
     return true
@@ -114,6 +118,8 @@ function dotos.setuser(name)
     return nil, "that user does not exist"
   end
 end
+
+users.threads(threads)
 
 function dotos.exit()
   threads[current] = nil
@@ -180,7 +186,7 @@ local function loop()
     end
   end
   dotos.log("[.os] init thread has stopped")
-  os.sleep(3)
+  os.sleep(10)
   os.shutdown()
 end
 

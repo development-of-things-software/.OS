@@ -15,8 +15,8 @@ io.output(stream)
 dotos.setio("stderr", stream)
 
 local id = dotos.spawn(function()
-  dofile("/dotos/binaries/dotsh.lua")
-end, ".SH")
+  dofile("/dotos/binaries/login.lua")
+end, ".clilogin")
 
 -- the IO stream has its own "cursor", so disable the default CC one
 term.setCursorBlink(false)
@@ -27,5 +27,5 @@ while dotos.running(id) do
 end
 dotos.logio = nil
 dotos.log("shutting down")
-os.sleep(2)
+os.sleep(3)
 os.shutdown()

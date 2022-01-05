@@ -148,9 +148,11 @@ function vts:write(str)
         elseif csc == "J" then
           local c = args[1] or 0
           if c == 0 then
-            self.surface:fill(1, 1, self.surface.w, cy, " ")
+            self.surface:fill(1, self.cy, self.surface.w,
+              self.surface.h - self.cy, " ")
           elseif c == 1 then
-            self.surface:fill(1, cy, self.surface.w, self.surface.h - cy, " ")
+            self.surface:fill(1, 1, self.surface.w,
+              self.cy, " ")
           elseif c == 2 then
             self.surface:fill(1, 1, self.surface.w, self.surface.h, " ")
           end

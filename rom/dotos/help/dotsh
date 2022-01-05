@@ -1,4 +1,4 @@
-{ORANGE}=={YELLOW} dotsh {ORANGE}=={WHITE}
+{ORANGE} =={YELLOW} dotsh {ORANGE}=={WHITE}
 
 {YELLOW}dotsh{WHITE} (stylized: {YELLOW}.SH{WHITE}) is the default command interpreter and interface for {YELLOW}.OS{WHITE}.  It sports a unique curly-bracket-based shell syntax which described later in this help text.
 
@@ -13,9 +13,33 @@ The following special keywords may be present:
   {ORANGE}-{RED} BLUE{WHITE}    insert a vt100 escape for blue color
   {ORANGE}-{RED} YELLOW{WHITE}  insert a vt100 escape for yellow color
   {ORANGE}-{RED} ORANGE{WHITE}  insert a vt100 escape for orange color
+  {ORANGE}-{RED} GREEN{WHITE}   insert a vt100 escape for green color
 
 The following special syntax is accepted:
   {ORANGE}.{YELLOW}foo{WHITE}
-    Execute command {YELLOW}foo{WHITE} and substitute its output.
+    Execute command {YELLOW}foo{WHITE} and substitute its output.  Equivalent to Bash's {RED}$(foo){WHITE}
 
-  {ORANGE}
+  {ORANGE}.>{GREEN}file {YELLOW}foo{WHITE}
+    Execute command {YELLOW}foo{WHITE} and redirect its output into {GREEN}file{WHITE}.
+
+  {ORANGE}.+{GREEN}file {YELLOW}foo{WHITE}
+    Like {RED}.>{WHITE}, but also return the command's output like {RED}.{WHITE}.
+
+  {ORANGE}${YELLOW}bar{WHITE}
+    Get the value of the environment variable {YELLOW}bar{WHITE}.
+
+  {ORANGE}$@{YELLOW}bar{ORANGE}={YELLOW}baz{WHITE}
+    Set the environment variable {YELLOW}bar{WHITE} to {YELLOW}baz{WHITE}.
+
+  {ORANGE}$+{YELLOW}bar{ORANGE}={YELLOW}baz{WHITE}
+    Like {RED}$@{WHITE}, but also returns {YELLOW}baz{WHITE}.
+
+  {ORANGE}$!{YELLOW}bar{WHITE}
+    Unset the environment variable {YELLOW}bar{WHITE}.
+
+  {ORANGE}$?{WHITE}
+    Return a concatenated list of all the available environment variables, one per line;  currently:
+
+{$?}
+
+{ORANGE} == {YELLOW}dotsh{ORANGE} =={WHITE}
