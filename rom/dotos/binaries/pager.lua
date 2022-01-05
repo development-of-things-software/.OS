@@ -29,7 +29,8 @@ for _,file in ipairs(args) do
       lines[i] = dotsh.expand(lines[i])
     end
     print(lines[i])
-    printed = printed + math.max(1, #lines[i] / 51)
+    printed = printed + math.max(1,
+      math.ceil(#lines[i]:gsub("\27%[[%d;]+%a", "") / 51))
     if printed % 15 == 0 then
       io.write("\27[33m-- " .. name .. " - press Enter for more --\27[39m")
       io.read()
