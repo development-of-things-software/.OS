@@ -1,6 +1,6 @@
 -- scheduler --
 
-local users = dofile("/rom/dotos/core/users.lua")
+local users = dofile("/dotos/core/users.lua")
 local fs = require("fs")
 
 local threads = {}
