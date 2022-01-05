@@ -19,10 +19,11 @@ local function download(file)
   -- strip /rom
   local ofile = file
   file = file:gsub("/rom", "")
+  print(ofile, file)
   local dir = fs.getDir(file)
   dir = fs.combine(installdir, dir)
+  print(dir)
   fs.makeDir(dir)
-  print(file)
   local dl = assert(http.get(base .. ofile, nil, true))
   local data = dl.readAll()
   dl.close()
