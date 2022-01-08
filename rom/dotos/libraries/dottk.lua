@@ -7,8 +7,9 @@ local sigtypes = require("sigtypes")
 local surface = require("surface")
 local textutils = require("textutils")
 
-colors.titlebar_text = colors.titlebar_text or colors.text_color
 colors.button_color = colors.button_color or colors.accent_color
+colors.button_text = colors.button_text or colors.accent_comp
+colors.titlebar_text = colors.titlebar_text or colors.text_color
 colors.titlebar = colors.titlebar_color or colors.base_color
 
 local _element = {}
@@ -47,6 +48,17 @@ function _element:handle(sig, x, y) end
 -- :resize() - takes a width and a height, and resizes
 -- the element accordingly.
 function _element:resize() end
+
+-- the following methods are optional
+-- :focus() - called when the element is focused
+function _element:focus() end
+-- :unfocus() - called when the element is unfocused
+function _element:unfocus() end
+-- :process() - called by the window manager on the
+-- element returned from :handle().  arguments are
+-- the same as to :handle().
+function _element:process(sig, x, y) end
+
 
 local tk = {}
 
@@ -94,12 +106,16 @@ function tk.Window:handle(sig, x, y)
     for i, c in ipairs(self.children) do
       if x >= c.x and y >= c.y and x < c.x + c.w and y < c.y + c.h then
         local nel = c:handle(sig, x - c.x + 1, y - c.y + 1)
+        if nel and self.focused ~= nel then
+          self.focused:unfocus()
+          nel:focus()
+        end
         self.focused = nel or self.focused
         if nel then return nel end
       end
     end
   elseif self.focused then
-    self.focused:handle(sig)
+    return self.focused:handle(sig)
   end
 end
 
@@ -240,6 +256,10 @@ function tk.Grid:handle(sig, x, y)
   end
 end
 
+-- Text: display some text
+-- this widget will automatically word-wrap the text it is given.  it
+-- will support text selection and copying in the future, once there
+-- is a system clipboard.
 tk.Text = tk.Element:inherit()
 function tk.Text:init(args)
   checkArg(1, args, "table")
@@ -256,7 +276,7 @@ function tk.Text:resize(w, h)
   self.h = h
 end
 
--- TODO: properly handle ctrl-C (copy) and text selection
+-- TODO: properly handle ctrl-C (copying) and text selection
 function tk.Text:handle(sig, x, y)
   return nil
 end
@@ -266,9 +286,69 @@ function tk.Text:draw(x, y)
   self.lines = textutils.wordwrap(self.text, self.w)
   for i, line in ipairs(self.lines) do
     if i > self.h then break end
-    self.window.surface:set(1, i, textutils.padRight(line, self.w),
-      colors.text_color, colors.base_color)
+    self.window.surface:set(x, y+i-1, textutils.padRight(line, self.w),
+      self.textcol or colors.text_color, self.bgcol or colors.base_color)
   end
 end
+
+-- Button: a clickable element that performs an action.
+-- this specific implementation of Button may be disabled,
+-- and will dynamically draw itself to fit the whole available
+-- space.
+tk.Button = tk.Text:inherit()
+function tk.Button:init(args)
+  tk.Text.init(self, args)
+  checkArg("callback", args.callback, "function", "nil")
+  self.callback = args.callback or function() end
+  self.disabled = false
+  self:unfocus()
+end
+
+function tk.Button:handle(sig, x, y)
+  if sigtypes.click[sig] then
+    return self
+  end
+end
+
+function tk.Button:focus()
+  self.bgcol = colors.accent_color
+  self.textcol = colors.accent_comp
+end
+
+function tk.Button:unfocus()
+  self.bgcol = colors.button_color
+  self.textcol = colors.button_text
+end
+
+function tk.Button:process()
+  return self:callback()
+end
+
+-- Checkbox: checkbox element
+-- derived from the Button element.
+tk.Checkbox = tk.Button:inherit()
+
+local function checkbox_callback(c)
+  c.selected = not c.selected
+end
+
+function tk.Checkbox:init(args)
+  tk.Button.init(self, args)
+  self.callback = checkbox_callback
+  self.text = "  " .. self.text
+end
+
+function tk.Checkbox:draw(x, y)
+  tk.Text.draw(self, x, y)
+  if self.selected then
+    self.window.surface:set(x, y, "\7", colors.accent_comp, colors.accent_color)
+  else
+    self.window.surface:fg(x, y, " ", colors.accent_comp, colors.accent_comp)
+  end
+end
+
+-- tk.Button defines these, but we don't want them
+function tk.Checkbox:focus() end
+function tk.Checkbox:unfocus() end
 
 return tk

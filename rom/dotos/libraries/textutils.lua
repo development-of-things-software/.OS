@@ -49,13 +49,14 @@ function lib.wordwrap(text, w)
     if #line == 0 then
       lines[#lines+1] = ""
     else
+      local startident = line:match("^ *")
       while #line > 0 do
         local chunk = line:sub(1, w)
         if #chunk == w then
           local offset = chunk:reverse():find(lib.wordbreak) or 1
           chunk = chunk:sub(1, -offset)
         end
-        line = line:sub(#chunk + 1)
+        line = startident .. line:sub(#chunk + 1)
         lines[#lines+1] = chunk
       end
     end

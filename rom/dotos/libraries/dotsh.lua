@@ -94,6 +94,7 @@ execute = function(input, capture, positional)
     if not cmd then error(err, 0) end
     local cap, err = ""
     local id = dotos.spawn(function()
+      local yield = coroutine.yield
       if capture then
         io.output(
           dotos.mkfile({
@@ -110,6 +111,16 @@ execute = function(input, capture, positional)
           os.setenv(tostring(i), positional[i])
         end
       end
+      local function wrapped_yield(...)
+        coroutine.yield = yield
+        local result = table.pack(yield(...))
+        coroutine.yield = wrapped_yield
+        if result[1] == "terminate" then
+          error("terminated", 0)
+        end
+        return table.unpack(result, 1, result.n)
+      end
+      coroutine.yield = wrapped_yield
       local ok, res = pcall(dofile, cmd, table.unpack(tokens, 2, tokens.n))
       if not ok then err = res end
       dotos.exit()

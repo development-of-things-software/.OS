@@ -9,6 +9,11 @@ types.mouse = {
   mouse_up = true,
 }
 
+types.click = {
+  mouse_click = true,
+  monitor_touch = true
+}
+
 types.keyboard = {
   clipboard = true,
   key_up = true,
