@@ -2,11 +2,11 @@
 
 local fs = require("fs")
 
-local keymap = "1.16.5"
+local keymap = "lwjgl3"
 local mcver = tonumber(_HOST:match("%b()"):sub(2,-2):match("1%.(%d+)")) or 0
 if mcver <= 12 or _HOST:match("CraftOS%-PC") then
   -- use the 1.12.2 keymap
-  keymap = "1.12.2"
+  keymap = "lwjgl2"
 end
 
 local defaultConfig = [[

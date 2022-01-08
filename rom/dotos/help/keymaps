@@ -1,0 +1,9 @@
+{ORANGE} == {YELLOW}Keymaps{ORANGE} == {WHITE}
+
+One of the design goals of {YELLOW}.OS{WHITE} is to run on versions of CC: Tweaked for Minecraft 1.12 and older, as well as 1.13 and newer, without the user having to touch anything and also while not depending at all on CraftOS.  This is accomplished through {ORANGE}keymaps{WHITE}.
+
+There are currently two supported keymaps, {RED}lwjgl2{WHITE} and {RED}lwjgl3{WHITE}.  These can be found under {YELLOW}/dotos/resources/keys{WHITE}.
+
+On first boot, the system keymap is configured by the startup script {YELLOW}/dotos/startup/01_init_settings.lua{YELLOW}.  This will automatically select the correct keymap based on the value of the global variable {RED}_HOST{WHITE}.  Currently it will select {RED}lwjgl2{WHITE} if this variable indicates Minecraft 1.12.2 or lower, or if it indicates CraftOS-PC.  Otherwise it will select the {RED}lwjgl3{WHITE} keymap.  If for some reason the script guessed wrong, you may change the keymap through the {RED}keyboardLayout{WHITE} system setting.
+
+{ORANGE} == {YELLOW}Keymaps{ORANGE} == {WHITE}

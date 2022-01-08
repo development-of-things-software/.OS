@@ -1,0 +1,24 @@
+{ORANGE} == {YELLOW}Interfaces{ORANGE} == {WHITE}
+
+One of {YELLOW}.OS{WHITE}'s distinguishing features in the ComputerCraft OS space is its concept of {ORANGE}interfaces{WHITE}.  This allows users to use whatever paradigm with which they feel most comfortable, and to switch between them with a reboot.
+
+You can change the interface into which the system boots by running
+
+  {BLUE}set interface {ORANGE}interface{WHITE}
+
+For example:
+
+  {BLUE}set interface {ORANGE}dotsh{WHITE}
+
+change the system interface to {YELLOW}dotsh{WHITE}.
+
+The system interface is loaded by the startup script {YELLOW}/dotos/startup/90_interface.lua{WHITE}.  This script searches the path:
+
+  {RED}/dotos/interfaces/?/main.lua;/shared/interfaces/?/main.lua{WHITE}
+
+for the configured interface.  If it does not find that interface, it will default to {YELLOW}dotsh{WHITE} and print a warning.
+
+See also:
+  {YELLOW}dotsh{ORANGE} - {YELLOW}dotui{ORANGE} - {YELLOW}dotwm{WHITE}
+
+{ORANGE} == {YELLOW}Interfaces{ORANGE} == {WHITE}

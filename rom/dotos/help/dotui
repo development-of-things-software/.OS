@@ -1,0 +1,10 @@
+{ORANGE} == {YELLOW}dotui{ORANGE} == {WHITE}
+
+{YELLOW}dotui{WHITE} (stylized {YELLOW}.UI{WHITE}) is the first iteration of {YELLOW}.OS{WHITE}'s graphical user interface stack.  Its user interface toolkit, while functional, requires a rather significant amount of boilerplate code and is rather inflexible.  {YELLOW}.WM{WHITE}, a better window manager, and {YELLOW}.TK{WHITE}, a replacement GUI toolkit, are intended to solve both of these problems in a reasonably sane manner.
+
+To change the system interface to {YELLOW}.ui{WHITE}, run {BLUE}set interface dotui{WHITE} in the shell and reboot.
+
+See also:
+  {YELLOW}interfaces{ORANGE} - {YELLOW}dotwm{ORANGE} - {YELLOW}dottk{WHITE}
+
+{ORANGE} == {YELLOW}dotui{ORANGE} == {WHITE}

@@ -33,11 +33,12 @@ for _,file in ipairs(args) do
   for i=1, #lines, 1 do
     print(lines[i])
     printed = printed + math.max(1,
-      math.ceil(#lines[i]:gsub("\27%[[%d;]+%a", "") / 51))
-    if printed % (h - 1) == 0 then
+      math.ceil(#lines[i]:gsub("\27%[[%d;]*%a", "") / w))
+    if printed >= h - 3 then
       io.write("\27[33m-- " .. name .. " - press Enter for more --\27[39m")
       io.read()
       io.write("\27[A\27[2K")
+      printed = 0
     end
   end
 end
