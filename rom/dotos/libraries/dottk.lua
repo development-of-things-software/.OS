@@ -42,8 +42,11 @@ function _element:draw(x, y) end
 -- signal ID on all of its children.
 --
 -- the X and Y coordinates are OPTIONAL, and only present
--- for some signal types.
-function _element:handle(sig, x, y) end
+-- for some signal types.  for others (e.g. keypresses) they
+-- are actually the other signal arguments, so when handling
+-- only keypresses it is probably reasonable to name them
+-- something else.
+function _element:handle(sig, x, y, b) end
 
 -- :resize() - takes a width and a height, and resizes
 -- the element accordingly.
@@ -57,7 +60,7 @@ function _element:unfocus() end
 -- :process() - called by the window manager on the
 -- element returned from :handle().  arguments are
 -- the same as to :handle().
-function _element:process(sig, x, y) end
+function _element:process(sig, x, y, b) end
 
 
 local tk = {}
@@ -75,7 +78,7 @@ function tk.Window:init(args)
   self.root = args.root
   self.surface = surface.new(args.w, args.h)
   self.children = {}
-  self.windowid = self.root:addWindow(self)
+  self.windowid = self.root.addWindow(self)
   return self.windowid
 end
 
@@ -112,12 +115,12 @@ function tk.Window:addChild(x, y, element)
   return id
 end
 
-function tk.Window:handle(sig, x, y)
+function tk.Window:handle(sig, x, y, b)
   -- check children
   if x and y then
     for i, c in ipairs(self.children) do
       if x >= c.x and y >= c.y and x < c.x + c.w and y < c.y + c.h then
-        local nel = c:handle(sig, x - c.x + 1, y - c.y + 1)
+        local nel = c:handle(sig, x - c.x + 1, y - c.y + 1, b)
         if nel and self.focused ~= nel then
           self.focused:unfocus()
           nel:focus()
@@ -186,9 +189,9 @@ function tk.View:draw(x, y)
   self.buffer:blit(self.surface, x, y)
 end
 
-function tk.View:handle(sig, x, y)
+function tk.View:handle(sig, x, y, b)
   if x and y then x, y = x - self.xscrollv, y - self.yscrollv end
-  return self.child:handle(sig, x, y)
+  return self.child:handle(sig, x, y, b)
 end
 
 -- Grid: layout engine element
@@ -255,14 +258,14 @@ function tk.Grid:resize(w, h)
   end
 end
 
-function tk.Grid:handle(sig, x, y)
+function tk.Grid:handle(sig, x, y, b)
   if x and y then
     for r, row in ipairs(self.children) do
       for c, col in ipairs(row) do
         if x >= self.cwidth * (c-1) and y >= self.rheight * (r-1) and
            x < self.cwidth * c and y < self.rheight * r then
         return col:handle(sig, x - self.cwidth * (c-1),
-          y - self.rheight * (r-1))
+          y - self.rheight * (r-1), b)
       end
     end
   end
@@ -289,7 +292,7 @@ function tk.Text:resize(w, h)
 end
 
 -- TODO: properly handle ctrl-C (copying) and text selection
-function tk.Text:handle(sig, x, y)
+function tk.Text:handle(sig, x, y, b)
   return nil
 end
 
@@ -316,7 +319,7 @@ function tk.Button:init(args)
   self:unfocus()
 end
 
-function tk.Button:handle(sig, x, y)
+function tk.Button:handle(sig, x, y, b)
   if sigtypes.click[sig] then
     return self
   end

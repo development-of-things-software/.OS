@@ -4,8 +4,8 @@ local dotos = require("dotos")
 
 local lib = {}
 
-local registry = {}
 local channels = {}
+local open = {}
 
 -- basic IPC primitives
 local raw = {}
@@ -23,6 +23,9 @@ function raw.open(id)
   end
   local n = #channels + 1
   channels[n] = {to = id, send = {}, recv = {}}
+  local pid = dotos.getpid()
+  open[pid] = open[pid] or {}
+  table.insert(open[pid], n)
   return n
 end
 
@@ -32,7 +35,7 @@ function raw.isopen(id)
 end
 
 function raw.close(n)
-  chekArg(1, n, "number")
+  checkArg(1, n, "number")
   if not channels[n] then
     return nil, "IPC channel not found"
   end
@@ -48,7 +51,6 @@ function raw.send(n, ...)
   local msg = table.pack(n, ...)
   if msg.n == 1 then return end
   table.insert(channels[n].send, msg)
-  os.queueEvent("ipc_message_send")
   return true
 end
 
@@ -126,12 +128,12 @@ function lib.connect(name)
   checkArg(1, name, "string")
   local id, err = raw.open(name)
   if not id then return nil, err end
-  return setmetatable({name=name,id=id},{__index=string})
+  return setmetatable({name=name,id=id},{__index=stream})
 end
 
 local proxy_mt = {
   __index = function(t, k)
-    return function(...)
+    return function(_, ...)
       return t.conn:send(k, ...)
     end
   end
@@ -139,7 +141,7 @@ local proxy_mt = {
 
 function lib.proxy(name)
   checkArg(1, name, "string")
-  local conn, err = lib.open(name)
+  local conn, err = lib.connect(name)
   if not conn then return nil, err end
   return setmetatable({name=name,conn=conn}, proxy_mt)
 end
@@ -154,7 +156,7 @@ function lib.listen(api)
       else
         local req = table.remove(request, 2)
         local result = table.pack(pcall(api[req],
-          table.unpack(request, 1, request.n - 1)))
+          table.unpack(request, 1, request.n)))
         if result[1] then
           table.remove(result, 1)
         end
@@ -165,5 +167,14 @@ function lib.listen(api)
     end
   end
 end
+
+-- close IPC streams when threads die
+dotos.handle("thread_died", function(id)
+  if open[id] then
+    for i, handle in ipairs(open[id]) do
+      raw.close(handle)
+    end
+  end
+end, true)
 
 return lib

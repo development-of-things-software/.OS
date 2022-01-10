@@ -16,8 +16,10 @@ for i=1, #scripts, 1 do
   dofile("/dotos/startup/" .. scripts[i])
 end
 
+dotos.log("[.init] starting system interface manager")
+dotos.spawn(function()
+  dofile("/dotos/core/ifaced.lua")
+end, "ifaced")
+
 os.queueEvent("dummy")
-dotos.log("[.init] entering background")
-while true do
-  coroutine.yield()
-end
+while true do coroutine.yield() end

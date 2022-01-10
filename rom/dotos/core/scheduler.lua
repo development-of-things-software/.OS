@@ -132,13 +132,28 @@ function dotos.listthreads()
   return t
 end
 
+function dotos.stop(id)
+  checkArg(1, id, "number")
+  if not threads[id] then return nil, "no such thread" end
+  threads[id].stopped = true
+  return true
+end
+
+function dotos.continue(id)
+  checkArg(1, id, "number")
+  if not threads[id] then return nil, "no such thread" end
+  threads[id].stopped = false
+  return true
+end
+
 local handlers = {}
 local hn = 0
-function dotos.handle(sig, func)
+function dotos.handle(sig, func, persist)
   checkArg(1, sig, "string")
   checkArg(2, func, "function")
+  checkArg(3, persist, "boolean", "nil")
   hn = hn + 1
-  handlers[hn] = {registrar = current, sig = sig, func = func}
+  handlers[hn] = {registrar = persist and 0 or current, sig = sig, func = func}
   return hn
 end
 
@@ -184,14 +199,16 @@ local function loop()
       end
     end
     for k, v in pairs(threads) do
-      current = k
-      local ok, res = coroutine.resume(v.coro, table.unpack(signal, 1,
-        signal.n))
-      if not ok then
-        dotos.log("[.os] thread %s failed: %s", k, res)
-        deregister_handlers(v.id)
-        os.queueEvent("thread_died", k, res)
-        threads[k] = nil
+      if not v.stopped then
+        current = k
+        local ok, res = coroutine.resume(v.coro, table.unpack(signal, 1,
+          signal.n))
+        if not ok then
+          dotos.log("[.os] thread %s failed: %s", k, res)
+          deregister_handlers(v.id)
+          os.queueEvent("thread_died", k, res)
+          threads[k] = nil
+        end
       end
     end
   end
