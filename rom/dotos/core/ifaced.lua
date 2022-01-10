@@ -56,4 +56,16 @@ if configured == "dynamic" or not api.start(nil, configured) then
   api.start(nil, "dotsh")
 end
 
+dotos.handle("thread_died", function(_, pid)
+  for k, v in pairs(running) do
+    if pid == v then
+      running[k] = nil
+      dotos.log("INTERFACE CRASHED - STARTING dotsh")
+      os.sleep(2)
+      os.queueEvent("boy do i love hacks")
+      api.start(nil, "dotsh")
+    end
+  end
+end)
+
 ipc.listen(api)

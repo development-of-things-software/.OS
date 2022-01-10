@@ -62,7 +62,7 @@ local substitutions = {
   ["6"] = "pageDown"
 }
 
--- string.unpack isn't a thing in 1.12.2's CC:T 1.98.2, so use this instead
+-- string.unpack isn't a thing in 1.12.2's CC:T 1.89.2, so use this instead
 -- because this is all we need
 local function strunpack(str)
   local result = 0

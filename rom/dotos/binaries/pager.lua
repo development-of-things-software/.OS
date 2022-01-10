@@ -21,7 +21,7 @@ if not args[1] then return end
 local w, h = require("termio").getTermSize()
 
 local printed = 0
-for _,file in ipairs(args) do
+for _, file in ipairs(args) do
   local name = require("fs").getName(file)
   local handle = assert(io.open(file, "r"))
   local data = handle:read("a")

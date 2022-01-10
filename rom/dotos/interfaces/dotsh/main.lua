@@ -20,7 +20,7 @@ end, ".clilogin")
 
 -- the IO stream has its own "cursor", so disable the default CC one
 term.setCursorBlink(false)
-dotos.logio = stream
+--dotos.logio = stream
 while dotos.running(id) do
   surface:draw(1,1)
   coroutine.yield()

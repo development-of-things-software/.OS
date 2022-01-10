@@ -5,6 +5,7 @@ local aliases = {
   [""] = "main"
 }
 look = aliases[look or "main"] or look or "main"
+look = look:gsub(" ", "_")
 local path = package.searchpath(look, search)
 if not path then
   error("no available help entry", 0)

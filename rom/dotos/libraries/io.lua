@@ -133,7 +133,7 @@ do
   function fs.open(file, mode)
     checkArg(1, file, "string")
     checkArg(2, mode, "string")
-    return open(resolve(file), mode)
+    return open(resolve(file), mode or "r")
   end
 
   -- override: fs.find

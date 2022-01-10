@@ -1,5 +1,7 @@
 -- settings management --
 
+local fs = require("fs")
+
 local function serialize(k, v)
   checkArg(1, k, "string")
   checkArg(2, v, "string", "number", "boolean", "nil")
@@ -44,14 +46,26 @@ function lib.save(file, cfg)
   handle:close()
 end
 
-function lib.get(file, k)
-  return lib.load(file)[k]
-end
+if fs.isReadOnly("/") then
+  local files = {}
+  function lib.get(file, k)
+    return (files[file] or {})[k]
+  end
 
-function lib.set(file, k, v)
-  local c = lib.load(file)
-  c[k] = v
-  lib.save(file, c)
+  function lib.set(file, k, v)
+    files[file] = files[file] or {}
+    files[file][k] = v
+  end
+else
+  function lib.get(file, k)
+    return lib.load(file)[k]
+  end
+
+  function lib.set(file, k, v)
+    local c = lib.load(file)
+    c[k] = v
+    lib.save(file, c)
+  end
 end
 
 -- system settings functions

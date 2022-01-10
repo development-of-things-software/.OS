@@ -49,7 +49,7 @@ function lib.wordwrap(text, w)
     if #line == 0 then
       lines[#lines+1] = ""
     else
-      local startident = line:match("^ *")
+      local startident = line:match("^ *") or ""
       while #line > 0 do
         local chunk = line:sub(1, w)
         if #chunk == w then
