@@ -12,13 +12,9 @@ For example:
 
 change the system interface to {YELLOW}dotsh{WHITE}.
 
-The system interface is loaded by the startup script {YELLOW}/dotos/startup/90_interface.lua{WHITE}.  This script searches the path:
-
-  {RED}/dotos/interfaces/?/main.lua;/shared/interfaces/?/main.lua{WHITE}
-
-for the configured interface.  If it does not find that interface, it will default to {YELLOW}dotsh{WHITE} and print a warning.
+Which interface is displayed onscreen is managed by the System Interface Manager, {YELLOW}ifaced{ORANGE}.  This exports a simple interface over {YELLOW}.OS{WHITE}'s IPC mechanism to allow starting and stopping of interfaces at runtime, as well as switching between them, much more seamlessly than with the old system that required a reboot.  It can be controlled with the {YELLOW}iface{WHITE} command.
 
 See also:
-  {YELLOW}dotsh{ORANGE} - {YELLOW}dotui{ORANGE} - {YELLOW}dotwm{WHITE}
+  {YELLOW}dotsh{ORANGE} - {YELLOW}dotui{ORANGE} - {YELLOW}dotwm{ORANGE} - {YELLOW}ipc{WHITE}
 
 {ORANGE} == {YELLOW}Interfaces{ORANGE} == {WHITE}
