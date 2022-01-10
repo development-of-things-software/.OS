@@ -75,7 +75,8 @@ function tk.Window:init(args)
   self.root = args.root
   self.surface = surface.new(args.w, args.h)
   self.children = {}
-  self.root:addWindow(self)
+  self.windowid = self.root:addWindow(self)
+  return self.windowid
 end
 
 function tk.Window:draw(x, y)
@@ -98,6 +99,17 @@ function tk.Window:resize(w, h)
   end
   self.surface:resize(w, h)
   self.w, self.h = w, h
+end
+
+
+function tk.Window:addChild(x, y, element)
+  checkArg(1, element, "table")
+  element.x = x
+  element.y = y
+  local id = #self.children + 1
+  self.children[id] = element
+  element.childid = id
+  return id
 end
 
 function tk.Window:handle(sig, x, y)
@@ -341,7 +353,7 @@ end
 function tk.Checkbox:draw(x, y)
   tk.Text.draw(self, x, y)
   if self.selected then
-    self.window.surface:set(x, y, "\7", colors.accent_comp, colors.accent_color)
+    self.window.surface:set(x, y, "x", colors.accent_comp, colors.accent_color)
   else
     self.window.surface:fg(x, y, " ", colors.accent_comp, colors.accent_comp)
   end
@@ -350,5 +362,108 @@ end
 -- tk.Button defines these, but we don't want them
 function tk.Checkbox:focus() end
 function tk.Checkbox:unfocus() end
+
+-- MenuButton: show a menu of elements
+-- this cannot display submenus
+tk.MenuButton = tk.Button:inherit()
+function tk.MenuButton:init(args)
+  tk.Button.init(self, args)
+  checkArg("items", args.items, "table")
+  self.items = args.items
+  self.menu_w = 0
+  for i=1, #self.items, 1 do
+    self.menu_w = math.max(#self.items[i], self.menu_w)
+  end
+end
+
+function tk.MenuButton:handle(sig)
+  if sigtypes.click[sig] then
+    return self
+  end
+end
+
+function tk.MenuButton:process()
+  if self.menuwindow then
+    self:unfocus()
+  else
+    self.menuwindow = tk.Window:new {
+      root = self.window.root,
+      w = self.menu_w, h = #self.items
+    }
+    function self.menuwindow:unfocus()
+      self.root.removeWindow(self.windowid)
+    end
+    for i=1, #self.items, 1 do
+      self.menuwindow:addChild(1, i, tk.Button:new {
+        text = items[i].text,
+        callback = items[i].callback
+      })
+    end
+  end
+end
+
+function tk.MenuButton:unfocus()
+  if self.menuwindow then
+    self.window.root.removeWindow(self.menuwindow.windowid)
+    self.menuwindow = nil
+  end
+end
+
+-- MenuBar: a bar of MenuButtons
+-- takes a structure like this:
+--  {
+--    {
+--      "File", {
+--        { text = "Save", callback = function() ... end },
+--        { text = "Quit", callback = function() ... end }
+--      }
+--    },
+--    {
+--      "Edit", {
+--        { text = "Preferences", callback = function() ... end }
+--      }
+--    }
+--    -- and this structure is merged with the 'args' table:
+--    window = <tk.Window>,
+--  }
+tk.MenuBar = tk.Element:inherit()
+function tk.MenuBar:init(args)
+  checkArg(1, args, "table")
+  checkArg("window", args.window, "table")
+  self.window = args.window
+  self.items = {}
+  for i=1, #args, 1 do
+    local new = tk.MenuButton:new {
+      window = self.window,
+      text = key,
+      items = args[i],
+    }
+    new.w = #key
+    new.h = 1
+    self.items[#self.items+1] = new
+  end
+end
+
+function tk.MenuBar:draw(x, y)
+  self.window.surface:fill(x, y, self.window.surface.w, 1, " ",
+    colors.base_color, colors.button_text)
+  local xo = 0
+  for i, item in ipairs(self.items) do
+    self.window.surface.set(x + xo, y, item.text)
+    xo = xo + #item.text + 1
+  end
+end
+
+function tk.MenuBar:handle(sig, x, y)
+  if sigtypes.click[sig] then
+    local xo = 0
+    for i, item in ipairs(self.items) do
+      local nxo = xo + #item.text + 1
+      if x >= xo and x <= nxo then
+        return item
+      end
+    end
+  end
+end
 
 return tk
