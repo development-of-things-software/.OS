@@ -121,11 +121,6 @@ end
 
 users.threads(threads)
 
-function dotos.exit()
-  threads[current] = nil
-  coroutine.yield()
-end
-
 function dotos.listthreads()
   local t = {}
   for k,v in pairs(threads) do
@@ -143,7 +138,7 @@ function dotos.handle(sig, func)
   checkArg(1, sig, "string")
   checkArg(2, func, "function")
   hn = hn + 1
-  handlers[hn] = {sig = sig, func = func}
+  handlers[hn] = {registrar = current, sig = sig, func = func}
   return hn
 end
 
@@ -151,6 +146,20 @@ function dotos.drop(n)
   checkArg(1, n, "number")
   handlers[n] = nil
   return true
+end
+
+local function deregister_handlers(id)
+  for k, v in pairs(handlers) do
+    if v.registrar == id then
+      handlers[k] = nil
+    end
+  end
+end
+
+function dotos.exit()
+  threads[current] = nil
+  deregister_handlers(current)
+  coroutine.yield()
 end
 
 local function loop()
@@ -180,6 +189,7 @@ local function loop()
         signal.n))
       if not ok then
         dotos.log("[.os] thread %s failed: %s", k, res)
+        deregister_handlers(v.id)
         os.queueEvent("thread_died", k, res)
         threads[k] = nil
       end

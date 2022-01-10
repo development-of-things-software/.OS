@@ -8,9 +8,10 @@ local registry = {}
 local channels = {}
 
 -- basic IPC primitives
-lib.raw = {}
+local raw = {}
+lib.raw = raw
 
-function lib.raw.open(id)
+function raw.open(id)
   checkArg(1, id, "number", "string")
   if type(id) == "string" then
     for k, v in pairs(dotos.listthreads()) do
@@ -25,38 +26,144 @@ function lib.raw.open(id)
   return n
 end
 
-function lib.raw.isopen()
+function raw.isopen(id)
+  checkArg(1, id, "number")
+  return not not channels[id]
 end
 
-local _ipc = {}
+function raw.close(n)
+  chekArg(1, n, "number")
+  if not channels[n] then
+    return nil, "IPC channel not found"
+  end
+  channels[n] = nil
+  return true
+end
 
--- timeout is accurate to whatever the scheduler resume delay is - usually 0.5s
-function _ipc:wait(timeout)
-  timeout = timeout or math.huge
-  local id = os.startTimer(timeout)
-  while #self.queue == 0 do
-    local sig, tid = coroutine.yield()
-    if sig == "timer" and tid == tid then
-      if #self.queue == 0 then
-        return nil, "IPC request timed out"
+function raw.send(n, ...)
+  checkArg(1, n, "number")
+  if not channels[n] then
+    return nil, "IPC channel not found"
+  end
+  local msg = table.pack(n, ...)
+  if msg.n == 1 then return end
+  table.insert(channels[n].send, msg)
+  os.queueEvent("ipc_message_send")
+  return true
+end
+
+function raw.respond(n, ...)
+  checkArg(1, n, "number")
+  if not channels[n] then
+    return nil, "IPC channel not found"
+  end
+  local msg = table.pack(...)
+  if msg.n == 0 then return end
+  table.insert(channels[n].recv, msg)
+  return true
+end
+
+function raw.receive(n, wait)
+  checkArg(1, n, "number", "nil")
+  if not n then
+    local id = dotos.getpid()
+    while true do
+      for i, chan in ipairs(channels) do
+        if chan.to == id and #chan.send > 0 then
+          local t = table.remove(chan.send, 1)
+          return table.unpack(t, 1, t.n)
+        end
+      end
+      if wait then
+        coroutine.yield()
+      else
+        break
       end
     end
+  else
+    if not channels[n] then
+      return nil, "IPC channel not found"
+    end
+    if wait then
+      while #channels[n].recv == 0 do coroutine.yield() end
+    end
+    if #channels[n].recv > 0 then
+      local t = table.remove(channels[n].recv, 1)
+      return table.unpack(t, 1, t.n)
+    end
   end
-  return table.unpack(table.remove(self.queue, 1))
 end
 
-function _ipc:send(...)
-  self.queue[#self.queue+1] = table.pack(...)
+local stream = {}
+function stream:sendAsync(...)
+  if not raw.isopen(self.id) then self.id = raw.open(self.name) end
+  return raw.send(self.id, ...)
 end
 
-function _ipc.new()
-  return setmetatable({queue={},root=}, {__index=_ipc})
+function stream:receiveAsync()
+  if not raw.isopen(self.id) then self.id = raw.open(self.name) end
+  return raw.receive(self.id)
 end
 
-function lib.register(name, callback)
+function stream:receive()
+  if not raw.isopen(self.id) then self.id = raw.open(self.name) end
+  return raw.receive(self.id, true)
 end
 
-function lib.connect()
+function stream:send(...)
+  local ok, err = self:sendAsync(...)
+  if not ok then return nil, err end
+  return self:receive()
+end
+
+function stream:close()
+  if not raw.isopen(self.id) then
+    raw.close(self.id)
+  end
+end
+
+function lib.connect(name)
+  checkArg(1, name, "string")
+  local id, err = raw.open(name)
+  if not id then return nil, err end
+  return setmetatable({name=name,id=id},{__index=string})
+end
+
+local proxy_mt = {
+  __index = function(t, k)
+    return function(...)
+      return t.conn:send(k, ...)
+    end
+  end
+}
+
+function lib.proxy(name)
+  checkArg(1, name, "string")
+  local conn, err = lib.open(name)
+  if not conn then return nil, err end
+  return setmetatable({name=name,conn=conn}, proxy_mt)
+end
+
+function lib.listen(api)
+  checkArg(1, api, "table")
+  while true do
+    local request = table.pack(raw.receive())
+    if request.n > 0 then
+      if not api[request[2]] then
+        raw.respond(request[1], nil, "bad api request")
+      else
+        local req = table.remove(request, 2)
+        local result = table.pack(pcall(api[req],
+          table.unpack(request, 1, request.n - 1)))
+        if result[1] then
+          table.remove(result, 1)
+        end
+        raw.respond(request[1], table.unpack(result, 1, result.n))
+      end
+    else
+      coroutine.yield()
+    end
+  end
 end
 
 return lib
