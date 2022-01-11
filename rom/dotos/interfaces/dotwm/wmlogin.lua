@@ -4,6 +4,7 @@ local dotos = require("dotos")
 local users = require("users")
 local tk = require("dottk")
 local wm = require("dotwm")
+local colors = require("colors")
 
 local root 
 repeat
@@ -20,6 +21,9 @@ local win = tk.Window:new({
   position = "centered"
 })
 
+local status = ""
+local status_col = colors.white
+
 win:addChild(1, 1, tk.Grid:new({
   w = 12, h = 7,
   rows = 7, cols = 1,
@@ -27,6 +31,13 @@ win:addChild(1, 1, tk.Grid:new({
 }):addChild(1, 1, tk.Text:new({
   window = win,
   text = ".OS",
+  position = "center"
+})):addChild(2, 1, tk.Text:new({
+  window = win,
+  text = function(self)
+    self.textcol = status_col
+    return status
+  end,
   position = "center"
 })):addChild(3, 1, tk.Text:new({
   window = win,
@@ -65,7 +76,8 @@ win:addChild(1, 1, tk.Grid:new({
       end, ".desktop")
       logged_in = true
     else
-      self.textcol = tk.colors.text_disabled
+      status_col = colors.red
+      status = "Bad Login"
     end
   end
 }))))

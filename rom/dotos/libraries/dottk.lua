@@ -289,7 +289,7 @@ tk.Text = tk.Element:inherit()
 function tk.Text:init(args)
   checkArg(1, args, "table")
   checkArg("window", args.window, "table")
-  checkArg("text", args.text, "string")
+  checkArg("text", args.text, "string", "function")
   checkArg("position", args.position, "string", "nil")
   checkArg("width", args.width, "number", "nil")
   self.window = args.window
@@ -313,7 +313,8 @@ end
 function tk.Text:draw(x, y)
   -- word-wrap
   local nw = math.ceil(self.w * self.width)
-  self.lines = {self.text}--textutils.wordwrap(self.text, nw)
+  local text = type(self.text) == "function" and self.text(self) or self.text
+  self.lines = textutils.wordwrap(text, nw)
   for i, line in ipairs(self.lines) do
     if i > self.h then break end
     local xp = 0

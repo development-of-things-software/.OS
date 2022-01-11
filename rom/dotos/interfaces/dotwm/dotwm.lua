@@ -51,6 +51,9 @@ end
 
 local rootwindow = wms.rootwindow
 
+local dragxoffset = 0
+local dragyoffset = 0
+
 require("dotos").logio = nil
 while true do
   rootwindow.surface:fill(1, 1, rootwindow.surface.w, rootwindow.surface.h, " ",
