@@ -1,10 +1,10 @@
 -- .TK: the DoT OS UI toolkit v2 --
 
-local settings = require("settings")
-local colors = dofile("/dotos/resources/dottk/colors."..
-  (settings.sysget("dotTkColors") or "default")..".lua")
-local sigtypes = require("sigtypes")
+local keys = require("keys")
+local colors = dofile("/dotos/resources/dottk/colors.default.lua")
 local surface = require("surface")
+local settings = require("settings")
+local sigtypes = require("sigtypes")
 local textutils = require("textutils")
 
 colors.button_color = colors.button_color or colors.accent_color
@@ -63,7 +63,7 @@ function _element:unfocus() end
 function _element:process(sig, x, y, b) end
 
 
-local tk = {}
+local tk = {colors = colors}
 
 -- generic element
 tk.Element = _element:inherit()
@@ -78,16 +78,15 @@ function tk.Window:init(args)
   self.root = args.root
   self.surface = surface.new(args.w, args.h)
   self.children = {}
-  self.windowid = self.root.addWindow(self)
-  return self.windowid
+  self.windowid = self.root.addWindow(self, args.position)
 end
 
-function tk.Window:draw(x, y)
+function tk.Window:draw()
   -- draw self
-  self.surface:fill(x, y, self.w, self.h, " ", 1, self.bg)
+  self.surface:fill(1, 1, self.w, self.h, " ", 1, colors.base_color)
   -- draw all elements
   for k, v in pairs(self.children) do
-    v:draw(x + v.x - 1, y + v.y - 1)
+    v:draw(v.x, v.y)
   end
 end
 
@@ -112,17 +111,17 @@ function tk.Window:addChild(x, y, element)
   local id = #self.children + 1
   self.children[id] = element
   element.childid = id
-  return id
+  return self
 end
 
 function tk.Window:handle(sig, x, y, b)
   -- check children
-  if x and y then
+  if tonumber(x) and tonumber(y) then
     for i, c in ipairs(self.children) do
       if x >= c.x and y >= c.y and x < c.x + c.w and y < c.y + c.h then
         local nel = c:handle(sig, x - c.x + 1, y - c.y + 1, b)
         if nel and self.focused ~= nel then
-          self.focused:unfocus()
+          if self.focused then self.focused:unfocus() end
           nel:focus()
         end
         self.focused = nel or self.focused
@@ -130,7 +129,7 @@ function tk.Window:handle(sig, x, y, b)
       end
     end
   elseif self.focused then
-    return self.focused:handle(sig)
+    return self.focused:handle(sig, x, y, b)
   end
 end
 
@@ -205,6 +204,8 @@ function tk.Grid:init(args)
   checkArg("window", args.window, "table")
   checkArg("w", args.w, "number", "nil")
   checkArg("h", args.h, "number", "nil")
+  checkArg("rows", args.rows, "number", "nil")
+  checkArg("cols", args.cols or args.columns, "number", "nil")
   local window = args.window
   self.window = window
   local surface = window.surface
@@ -212,8 +213,8 @@ function tk.Grid:init(args)
   self.y = 1
   self.w = args.w or window.w
   self.h = args.h or window.h
-  self.rows = 0
-  self.colums = 0
+  self.rows = args.rows or 0
+  self.columns = args.cols or args.columns or 0
   self.children = {}
   self.rheight = math.floor(self.h / self.rows)
   self.cwidth = math.floor(self.w / self.columns)
@@ -231,13 +232,14 @@ function tk.Grid:addChild(row, col, element)
     error("bad argument #2 (invalid column)") end
   self.children[row] = self.children[row] or {}
   self.children[row][col] = element
+  return self
 end
 
 function tk.Grid:draw(x, y)
-  for r, row in ipairs(self.children) do
-    for c, col in ipairs(row) do
-      local cw, ch = col.w, col.h
-      col:resize(math.min(self.width, col.w) math.min(self.rheight, col.h))
+  for r, row in pairs(self.children) do
+    for c, col in pairs(row) do
+      local cw, ch = col.w or math.huge, col.h or math.huge
+      col:resize(math.min(self.cwidth, cw), math.min(self.rheight, ch))
       col:draw(x + self.cwidth * (c-1), y + self.rheight * (r-1))
     end
   end
@@ -260,12 +262,20 @@ end
 
 function tk.Grid:handle(sig, x, y, b)
   if x and y then
-    for r, row in ipairs(self.children) do
-      for c, col in ipairs(row) do
-        if x >= self.cwidth * (c-1) and y >= self.rheight * (r-1) and
-           x < self.cwidth * c and y < self.rheight * r then
-        return col:handle(sig, x - self.cwidth * (c-1),
-          y - self.rheight * (r-1), b)
+    for r, row in pairs(self.children) do
+      for c, col in pairs(row) do
+        local check = {
+          x = self.cwidth * (c-1) + 1,
+          y = self.rheight * (r-1) + 1,
+          w = self.cwidth,
+          h = self.rheight
+        }
+        if x >= check.x and y >= check.y and
+           x <= check.x + check.w - 1 and y <= check.y + check.h - 1 then
+          local n = col:handle(sig, x - check.x + 1,
+            y - check.y + 1, b)
+          if n then return n end
+        end
       end
     end
   end
@@ -280,8 +290,12 @@ function tk.Text:init(args)
   checkArg(1, args, "table")
   checkArg("window", args.window, "table")
   checkArg("text", args.text, "string")
+  checkArg("position", args.position, "string", "nil")
+  checkArg("width", args.width, "number", "nil")
   self.window = args.window
   self.text = args.text
+  self.position = args.position
+  self.width = args.width or 1
 end
 
 function tk.Text:resize(w, h)
@@ -298,10 +312,20 @@ end
 
 function tk.Text:draw(x, y)
   -- word-wrap
-  self.lines = textutils.wordwrap(self.text, self.w)
+  local nw = math.ceil(self.w * self.width)
+  self.lines = {self.text}--textutils.wordwrap(self.text, nw)
   for i, line in ipairs(self.lines) do
     if i > self.h then break end
-    self.window.surface:set(x, y+i-1, textutils.padRight(line, self.w),
+    local xp = 0
+    if self.position == "center" then
+      if nw > #line then
+        xp = math.floor(nw / 2 + 0.5) - math.floor(#line / 2 + 0.5)
+      end
+    elseif self.position == "right" then
+      xp = nw - #line
+    end
+    xp = xp + math.ceil(self.w * (1 - self.width))
+    self.window.surface:set(x + xp, y+i-1, textutils.padRight(line, nw),
       self.textcol or colors.text_color, self.bgcol or colors.base_color)
   end
 end
@@ -467,6 +491,71 @@ function tk.MenuBar:handle(sig, x, y)
       end
     end
   end
+end
+
+-- InputBox: reads a single line of input
+tk.InputBox = tk.Element:inherit()
+function tk.InputBox:init(args)
+  checkArg(1, args, "table")
+  checkArg("window", args.window, "table")
+  checkArg("mask", args.mask, "string", "nil")
+  checkArg("text", args.text, "string", "nil")
+  checkArg("width", args.width, "number", "nil")
+  checkArg("onchar", args.onchar, "function", "nil")
+  checkArg("position", args.position, "string", "nil")
+  self.window = args.window
+  self.position = args.position
+  self.width = args.width or 1
+  self.buffer = args.text or ""
+  self.onchar = args.onchar or function() end
+  self.mask = args.mask
+end
+
+function tk.InputBox:resize(w, h)
+  self.w = w
+  self.h = h
+end
+
+function tk.InputBox:draw(x, y)
+  local nw = math.ceil(self.w * self.width)
+  local xp = 0
+  if self.position == "center" then
+    xp = math.floor(self.w / 2 + 0.5) - math.floor(nw / 2 + 0.5)
+  elseif self.position == "right" then
+    xp = self.w - nw
+  end
+  local text = textutils.padRight(
+    (self.mask and self.buffer:gsub(".", self.mask:sub(1,1))
+     or self.buffer) .. (self.focused and "|" or ""), nw):sub(-nw)
+  self.window.surface:set(x + xp, y, text, colors.text_color,
+    colors.base_color_light)
+end
+
+function tk.InputBox:handle(sig)
+  if sig == "key" or sig == "char" or sig == "mouse_click" then
+    return self
+  end
+end
+
+function tk.InputBox:process(sig, coc)
+  print("GOT SIG", sig)
+  if sig == "char" then
+    self.buffer = self.buffer .. coc
+    self:onchar()
+  elseif sig == "key" then
+    if coc == keys.backspace and #self.buffer > 0 then
+      self.buffer = self.buffer:sub(1, -2)
+    end
+    self:onchar()
+  end
+end
+
+function tk.InputBox:focus()
+  self.focused = true
+end
+
+function tk.InputBox:unfocus()
+  self.focused = false
 end
 
 return tk

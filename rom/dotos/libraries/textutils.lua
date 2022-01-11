@@ -44,6 +44,9 @@ end
 function lib.wordwrap(text, w)
   checkArg(1, text, "string")
   checkArg(2, w, "number")
+  if #text < w then
+    return {text}
+  end
   local lines = {}
   for _, line in ipairs(lib.lines(text)) do
     if #line == 0 then

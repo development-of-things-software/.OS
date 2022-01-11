@@ -133,8 +133,14 @@ end
 
 local proxy_mt = {
   __index = function(t, k)
-    return function(_, ...)
-      return t.conn:send(k, ...)
+    if t.conn[k] then
+      return function(_, ...)
+        return t.conn[k](t.conn, ...)
+      end
+    else
+      return function(_, ...)
+        return t.conn:send(k, ...)
+      end
     end
   end
 }

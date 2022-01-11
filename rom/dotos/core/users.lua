@@ -35,9 +35,10 @@ function lib.runas(name, pw, ...)
     return nil, "bad credentials"
   end
   local old = dotos.getuser()
-  threads[dotos.getpid()].user = name
+  local tid = dotos.getpid()
+  threads[tid].user = name
   local result = table.pack(pcall(dotos.spawn, ...))
-  threads[dotos.getpid()].user = old
+  threads[tid].user = old
   return assert(table.unpack(result, 1, result.n))
 end
 

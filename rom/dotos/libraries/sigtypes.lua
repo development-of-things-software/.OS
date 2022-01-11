@@ -17,6 +17,7 @@ types.click = {
 types.keyboard = {
   clipboard = true,
   key_up = true,
+  char = true,
   key = true,
 }
 
