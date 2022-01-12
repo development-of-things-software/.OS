@@ -172,10 +172,10 @@ function tk.View:init(args)
   self.xscrollv = 0
   self.yscrollv = 0
   self.child = args.child
-  -- the child element of this should *not* be a child of the
-  -- parent window, so remove it from the parent window
-  self.child.window.children[self.child.childid] = nil
-  self.child.surface = surface.new(self.child.w, self.child.h)
+  self.child.w = self.child.w or args.w
+  self.child.h = self.child.h or args.h
+  self.child.window = {w = self.child.w, h = self.child.h}
+  self.child.window.surface = surface.new(self.child.w, self.child.h)
 
   self.childid = #args.window.children+1
   args.window.children[self.childid] = self
@@ -631,11 +631,11 @@ function tk.ErrorDialog:init(args)
     window = self,
     text = args.text,
   }
-  self:addChild(1, 2, tk.View:new {
+  self:addChild(1, 2, text)--[[tk.View:new {
     window = self, w = args.w, h = args.h - 2,
     child = text,
-  })
-  self:addChild(1, 2, tk.Grid:new({
+  })]]
+  self:addChild(1, self.h, tk.Grid:new({
     window = self, rows = 1, columns = 3
   }):addChild(1, 3, tk.Button:new {
     window = self, text = "OK", callback = function()

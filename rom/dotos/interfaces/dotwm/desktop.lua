@@ -1,5 +1,6 @@
 -- .OS Desktop Interface --
 
+local dotos = require("dotos")
 local fs = require("fs")
 local tk = require("dottk")
 local wm = require("dotwm")
@@ -65,6 +66,11 @@ if rf then
         window = window,
         text = def.name,
         position = "center",
+        callback = function()
+          dotos.spawn(function()
+            dofile(def.exec)
+          end, def.procname or def.name)
+        end,
       })
     else
       grid:addChild(i + 2, 1, tk.Text:new{
@@ -81,10 +87,27 @@ window:addChild(1, 1, tk.TitleBar:new{
   text = "Menu"
 }):addChild(1, 2, grid)
 
+local ok, err = pcall(tk.ErrorDialog.new, tk.ErrorDialog, {
+  root = root,
+  text = "Error!"
+})
+
+if err then
+  local win = tk.Window:new({root=root,w=#err,h=2})
+  win:addChild(1,1,tk.TitleBar:new{window=win})
+  win:addChild(1,2,tk.Text:new({window=win,text=err}))
+end
+
 while true do
-  coroutine.yield()
+  local sig, id, reason = coroutine.yield()
   if window.closed then
     window.closed = false
     root.addWindow(window)
+  end
+  if sig == "thread_died" then
+    tk.ErrorDialog:new {
+      root = root,
+      text = reason
+    }
   end
 end
