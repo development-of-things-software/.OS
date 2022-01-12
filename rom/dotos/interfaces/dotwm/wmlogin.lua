@@ -21,40 +21,44 @@ local win = tk.Window:new({
   position = "centered"
 })
 
+
+local pid 
 local status = ""
 local status_col = colors.white
+local status_bg
 
-win:addChild(1, 1, tk.Grid:new({
+local layout = tk.Grid:new({
   w = 12, h = 7,
   rows = 7, cols = 1,
   window = win,
 }):addChild(1, 1, tk.Text:new({
   window = win,
-  text = ".OS",
+  text = ".OS Login",
   position = "center"
-})):addChild(2, 1, tk.Text:new({
+})):addChild(6, 1, tk.Text:new({
   window = win,
   text = function(self)
     self.textcol = status_col
+    self.bgcol = status_bg
     return status
   end,
-  position = "center"
-})):addChild(3, 1, tk.Text:new({
+  --position = "center",
+})):addChild(2, 1, tk.Text:new({
   window = win,
   text = "Username",
   position = "center"
-})):addChild(4, 1, tk.InputBox:new({
+})):addChild(3, 1, tk.InputBox:new({
   window = win,
   position = "center",
   width = 0.8,
   onchar = function(self)
     uname = self.buffer
   end
-})):addChild(5, 1, tk.Text:new({
+})):addChild(4, 1, tk.Text:new({
   window = win,
   text = "Password",
   position = "center",
-})):addChild(6, 1, tk.InputBox:new({
+})):addChild(5, 1, tk.InputBox:new({
   window = win,
   position = "center",
   width = 0.8,
@@ -68,20 +72,37 @@ win:addChild(1, 1, tk.Grid:new({
   rows = 1, cols = 2,
 }):addChild(1, 2, tk.Button:new({
   window = win,
-  text = "Login",
+  text = "Log In",
   callback = function(self)
     if users.auth(uname, pass) then
-      users.runas(uname, pass, function()
-        dofile("/dotos/interfaces/dotwm/desktop.lua")
+      local _
+      root.removeWindow(win.windowid)
+      _, pid = users.runas(uname, pass, function()
+        local ok, err = loadfile("/dotos/interfaces/dotwm/desktop.lua", "DE")
+        if not ok then
+          status = "Failed"
+          status_col = colors.red
+          status_bg = colors.white
+        else
+          logged_in = true
+          ok()
+        end
       end, ".desktop")
-      logged_in = true
     else
       status_col = colors.red
+      status_bg = colors.white
       status = "Bad Login"
     end
   end
-}))))
+})))
 
-while not logged_in do
-  coroutine.yield()
+while true do
+  win:addChild(1, 1, layout)
+  while not logged_in do
+    coroutine.yield()
+  end
+  while dotos.running(pid) do
+    coroutine.yield()
+  end
+  logged_in = false
 end

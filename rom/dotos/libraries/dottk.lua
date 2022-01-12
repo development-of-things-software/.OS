@@ -1,14 +1,17 @@
 -- .TK: the DoT OS UI toolkit v2 --
 
+local fs = require("fs")
 local keys = require("keys")
-local colors = dofile("/dotos/resources/dottk/colors.default.lua")
 local surface = require("surface")
 local settings = require("settings")
 local sigtypes = require("sigtypes")
+local resources = require("resources")
 local textutils = require("textutils")
 
-colors.button_color = colors.button_color or colors.accent_color
-colors.button_text = colors.button_text or colors.accent_comp
+local colors = assert(resources.load("dottk/default"))
+
+colors.button_color = colors.button_color or colors.base_color
+colors.button_text = colors.button_text or colors.text_color
 colors.titlebar_text = colors.titlebar_text or colors.text_color
 colors.titlebar = colors.titlebar_color or colors.base_color
 
@@ -67,6 +70,9 @@ local tk = {colors = colors}
 
 -- generic element
 tk.Element = _element:inherit()
+
+
+--== Interface building blocks ==--
 
 tk.Window = tk.Element:inherit()
 function tk.Window:init(args)
@@ -127,6 +133,9 @@ function tk.Window:handle(sig, x, y, b)
         self.focused = nel or self.focused
         if nel then return nel end
       end
+    end
+    if sig == "mouse_click" then
+      self.focused:unfocus()
     end
   elseif self.focused then
     return self.focused:handle(sig, x, y, b)
@@ -239,7 +248,7 @@ function tk.Grid:draw(x, y)
   for r, row in pairs(self.children) do
     for c, col in pairs(row) do
       local cw, ch = col.w or math.huge, col.h or math.huge
-      col:resize(math.min(self.cwidth, cw), math.min(self.rheight, ch))
+      col:resize(self.cwidth, self.rheight)
       col:draw(x + self.cwidth * (c-1), y + self.rheight * (r-1))
     end
   end
@@ -314,7 +323,11 @@ function tk.Text:draw(x, y)
   -- word-wrap
   local nw = math.ceil(self.w * self.width)
   local text = type(self.text) == "function" and self.text(self) or self.text
-  self.lines = textutils.wordwrap(text, nw)
+  if self.wrap then
+    self.lines = textutils.wordwrap(text, nw)
+  else
+    self.lines = textutils.lines(text)
+  end
   for i, line in ipairs(self.lines) do
     if i > self.h then break end
     local xp = 0
@@ -326,7 +339,8 @@ function tk.Text:draw(x, y)
       xp = nw - #line
     end
     xp = xp + math.ceil(self.w * (1 - self.width))
-    self.window.surface:set(x + xp, y+i-1, textutils.padRight(line, nw),
+    line = (" "):rep(xp) .. line
+    self.window.surface:set(x, y+i-1, textutils.padRight(line, nw),
       self.textcol or colors.text_color, self.bgcol or colors.base_color)
   end
 end
@@ -339,6 +353,8 @@ tk.Button = tk.Text:inherit()
 function tk.Button:init(args)
   tk.Text.init(self, args)
   checkArg("callback", args.callback, "function", "nil")
+  self.w = #args.text
+  self.h = 1
   self.callback = args.callback or function() end
   self.disabled = false
   self:unfocus()
@@ -370,20 +386,26 @@ tk.Checkbox = tk.Button:inherit()
 
 local function checkbox_callback(c)
   c.selected = not c.selected
+  if c.additional_callback then
+    c:additional_callback()
+  end
 end
 
 function tk.Checkbox:init(args)
   tk.Button.init(self, args)
   self.callback = checkbox_callback
-  self.text = "  " .. self.text
+  self.additional_callback = args.callback
+  self.text = "   " .. self.text
 end
 
 function tk.Checkbox:draw(x, y)
   tk.Text.draw(self, x, y)
   if self.selected then
-    self.window.surface:set(x, y, "x", colors.accent_comp, colors.accent_color)
+    self.window.surface:set(x+1, y, "x", colors.accent_comp,
+      colors.accent_color)
   else
-    self.window.surface:fg(x, y, " ", colors.accent_comp, colors.accent_comp)
+    self.window.surface:set(x+1, y, " ", colors.accent_color,
+      colors.accent_color)
   end
 end
 
@@ -539,7 +561,6 @@ function tk.InputBox:handle(sig)
 end
 
 function tk.InputBox:process(sig, coc)
-  print("GOT SIG", sig)
   if sig == "char" then
     self.buffer = self.buffer .. coc
     self:onchar()
@@ -557,6 +578,78 @@ end
 
 function tk.InputBox:unfocus()
   self.focused = false
+end
+
+--== More complex utility elements ==--
+
+-- TitleBar: generic window title bar
+tk.TitleBar = tk.Element:inherit()
+function tk.TitleBar:init(args)
+  checkArg(1, args, "table")
+  checkArg("window", args.window, "table")
+  checkArg("text", args.text, "string", "nil")
+  self.window = args.window
+  self.text = args.text or ""
+end
+
+function tk.TitleBar:draw()
+  self.w = self.window.w
+  self.h = 1
+  self.window.surface:fill(1, 1, self.window.w, 1, " ", colors.titlebar_text,
+    colors.titlebar)
+  local tx = math.floor(self.w / 2 + 0.5) - math.floor(#self.text/2 + 0.5)
+  self.window.surface:set(tx, 1, self.text)
+  self.window.surface:set(self.window.w - 3, 1, " x ", colors.accent_comp,
+    colors.accent_color)
+end
+
+function tk.TitleBar:handle(sig, x)
+  if sigtypes.click[sig] then
+    return self
+  end
+end
+
+function tk.TitleBar:process(sig, x)
+  if x > self.window.w - 4 then
+    self.window.root.removeWindow(self.window.windowid)
+    self.window.closed = true
+  else
+    self.window.dragging = true
+  end
+end
+
+tk.ErrorDialog = tk.Window:inherit()
+function tk.ErrorDialog:init(args)
+  checkArg(1, args, "table")
+  args.w = args.w or 15
+  args.h = args.h or 8
+  args.position = "centered"
+  tk.Window.init(self, args)
+  checkArg("text", args.text, "string")
+  self:addChild(1, 1, tk.TitleBar:new { window = self })
+  local text = tk.Text:new {
+    window = self,
+    text = args.text,
+  }
+  self:addChild(1, 2, tk.View:new {
+    window = self, w = args.w, h = args.h - 2,
+    child = text,
+  })
+  self:addChild(1, 2, tk.Grid:new({
+    window = self, rows = 1, columns = 3
+  }):addChild(1, 3, tk.Button:new {
+    window = self, text = "OK", callback = function()
+      self.window.root.removeWindow(self.window.windowid)
+      self.closed = true
+    end
+  }))
+end
+
+--== Miscellaneous ==--
+
+function tk.useColorScheme(name)
+  checkArg(1, name, "string")
+  colors = assert(resources.load("dottk/"..name))
 end
 
 return tk

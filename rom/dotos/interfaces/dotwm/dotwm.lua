@@ -2,6 +2,7 @@
 
 local ipc = require("ipc")
 local term = require("term")
+local dotos = require("dotos")
 local state = require("state")
 local colors = require("colors")
 local surface = require("surface")
@@ -31,8 +32,12 @@ if not wms.rootwindow then
       local w, h = term.getSize()
       element.x = math.floor(w/2) - math.floor(element.w/2)
       element.y = math.floor(h/2) - math.floor(element.h/2)
+    else
+      element.x = element.x or 1
+      element.y = element.y or 1
     end
     windows[id] = element
+    element.pid = dotos.getpid()
     table.insert(stack, 1, id)
     return id
   end
@@ -45,27 +50,34 @@ if not wms.rootwindow then
     windows[id] = nil
     return true
   end
-
+  
   wms.rootwindow = rootwindow
 end
 
 local rootwindow = wms.rootwindow
 
-local dragxoffset = 0
-local dragyoffset = 0
+local dragxoffset, dragyoffset
 
-require("dotos").logio = nil
+dotos.logio = nil
 while true do
   rootwindow.surface:fill(1, 1, rootwindow.surface.w, rootwindow.surface.h, " ",
     colors.blue, colors.blue)
   -- draw all the windows
   for k, v in pairs(windows) do
-    v:draw(1, 1)
+    if not dotos.running(v.pid) then
+      windows[k] = nil
+    else
+      v:draw(1, 1)
+    end
   end
   -- blit them back-to-front to the root window
   for i=#stack, 1, -1 do
     local win = windows[stack[i]]
-    win.surface:blit(rootwindow.surface, win.x, win.y)
+    if not (win and dotos.running(win.pid)) then
+      table.remove(stack, i)
+    else
+      win.surface:blit(rootwindow.surface, win.x, win.y)
+    end
   end
   -- draw the root window to the screen
   rootwindow.surface:draw(1, 1)
@@ -80,6 +92,19 @@ while true do
     end
   elseif sig[1] == "term_resize" then
     rootwindow.surface:resize(term.getSize())
+  elseif (sig[1] == "mouse_drag" or sig[1] == "mouse_up") and stack[1]
+      and windows[stack[1]] and windows[stack[1]].dragging then
+    local win = windows[stack[1]]
+    if sig[1] == "mouse_up" then
+      win.dragging = false
+      dragxoffset, dragyoffset = nil, nil
+    elseif sig[1] == "mouse_drag" then
+      if not dragxoffset then
+        dragxoffset, dragyoffset = sig[3] - win.x, sig[4] - win.y
+      else
+        win.x, win.y = sig[3] - dragxoffset, sig[4] - dragyoffset
+      end
+    end
   elseif sigtypes.mouse[sig[1]] then
     local win = rootwindow
     local button, x, y = table.unpack(sig, 2, sig.n)

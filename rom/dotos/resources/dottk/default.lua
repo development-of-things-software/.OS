@@ -15,7 +15,7 @@ return {
   -- text while disabled
   text_disabled = colors.lightGray,
   -- button color defaults to accent color
-  button_color = colors.red,
+  button_color = colors.gray,
   -- button text color defaults to accent complement
   button_text = colors.white,
   -- titlebar background color defaults to base_color
