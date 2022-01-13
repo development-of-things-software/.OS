@@ -115,6 +115,8 @@ while true do
       if x >= w.x and x <= w.x + w.w - 1 and
          y >= w.y and y <= w.y + w.h - 1 then
         win = w
+        local id = table.remove(stack, i)
+        table.insert(stack, 1, id)
         sig[3] = sig[3] - w.x + 1
         sig[4] = sig[4] - w.y + 1
         break

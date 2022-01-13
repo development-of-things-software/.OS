@@ -9,9 +9,12 @@ local function restart_wm()
   end, ".wm")
 end
 
+local loginfile = "/dotos/interfaces/dotwm/desktop.lua"
+--local loginfile = "/dotos/interfaces/dotwm/wmlogin.lua"
+
 local function restart_login()
   loginpid = dotos.spawn(function()
-    dofile("/dotos/interfaces/dotwm/wmlogin.lua")
+    dofile(loginfile)
   end, "login")
 end
 

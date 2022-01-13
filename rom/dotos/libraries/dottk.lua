@@ -134,7 +134,7 @@ function tk.Window:handle(sig, x, y, b)
         if nel then return nel end
       end
     end
-    if sig == "mouse_click" then
+    if sig == "mouse_click" and self.focused then
       self.focused:unfocus()
     end
   elseif self.focused then
@@ -172,8 +172,8 @@ function tk.View:init(args)
   self.xscrollv = 0
   self.yscrollv = 0
   self.child = args.child
-  self.child.w = self.child.w or args.w
-  self.child.h = self.child.h or args.h
+  self.child.w = self.child.w or 100 or args.w - 1
+  self.child.h = self.child.h or 100 or args.h
   self.child.window = {w = self.child.w, h = self.child.h}
   self.child.window.surface = surface.new(self.child.w, self.child.h)
 
@@ -183,17 +183,39 @@ end
 
 function tk.View:xscroll(n)
   checkArg(1, n, "number")
-  self.xscrollv = math.max(0, math.min(self.child.w - self.w))
+  self.xscrollv = math.max(0, math.min(self.child.w - self.w, self.xscrollv+n))
 end
 
 function tk.View:yscroll(n)
   checkArg(1, n, "number")
-  self.yscrollv = math.max(0, math.min(self.child.h - self.h))
+  self.yscrollv = math.max(0, math.min(self.child.h - self.h, self.yscrollv+n))
 end
 
 function tk.View:draw(x, y)
+  self.buffer:fill(1, 1, self.w, self.h, " ", colors.base_color,
+    colors.base_color)
+  self.child.window.surface:fill(1, 1, self.child.window.surface.w,
+    self.child.window.surface.h, " ", colors.base_color, colors.base_color)
   self.child:draw(1, 1)
-  self.child.surface:blit(self.buffer, 1 - self.xscrollv, 1 - self.yscrollv)
+  self.child.window.surface:blit(self.buffer, 1 - self.xscrollv,
+    1 - self.yscrollv)
+  -- now draw scrollbars
+  local scroll_y = math.floor((self.h - 1) * (self.yscrollv /
+    (self.child.window.surface.h - self.h)))
+  local scroll_x = math.floor((self.w - 1) * (self.xscrollv /
+    (self.child.window.surface.w - self.w)))
+  if self.h < self.child.h then
+    self.buffer:fill(x + self.w, y, 1, self.h, " ", colors.base_color_light,
+      colors.base_color_light)
+    self.buffer:set(x + self.w, y + scroll_y, "\127", colors.base_color)
+  end
+
+  if self.w < self.child.w then
+    self.buffer:fill(x, y + self.h, self.w, 1, " ", colors.base_color_light,
+      colors.base_color_light)
+    self.buffer:set(x + scroll_x, y + self.h, "\127", colors.base_color)
+  end
+  
   self.buffer:blit(self.surface, x, y)
 end
 
@@ -305,6 +327,11 @@ function tk.Text:init(args)
   self.text = args.text
   self.position = args.position
   self.width = args.width or 1
+  local text = type(self.text) == "function" and self.text(self) or self.text
+  self.w = self.w or #text
+  local nw = math.ceil(self.w * self.width)
+  self.h = self.h or #(self.wrap and textutils.wordwrap(text, nw)
+    or textutils.lines(text))
 end
 
 function tk.Text:resize(w, h)
@@ -320,9 +347,12 @@ function tk.Text:handle(sig, x, y, b)
 end
 
 function tk.Text:draw(x, y)
-  -- word-wrap
-  local nw = math.ceil(self.w * self.width)
   local text = type(self.text) == "function" and self.text(self) or self.text
+  self.w = self.w or #text
+  local nw = math.ceil(self.w * self.width)
+  self.h = self.h or #(self.wrap and textutils.wordwrap(text, nw)
+    or textutils.lines(text))
+  -- word-wrap
   if self.wrap then
     self.lines = textutils.wordwrap(text, nw)
   else
@@ -618,8 +648,8 @@ function tk.TitleBar:process(sig, x)
   end
 end
 
-tk.ErrorDialog = tk.Window:inherit()
-function tk.ErrorDialog:init(args)
+tk.Dialog = tk.Window:inherit()
+function tk.Dialog:init(args)
   checkArg(1, args, "table")
   args.w = args.w or 15
   args.h = args.h or 8
@@ -631,14 +661,16 @@ function tk.ErrorDialog:init(args)
     window = self,
     text = args.text,
   }
-  self:addChild(1, 2, text)--[[tk.View:new {
+  text.wrap = true
+  text.w = args.w
+  self:addChild(1, 2, tk.View:new {
     window = self, w = args.w, h = args.h - 2,
-    child = text,
-  })]]
+    child = text
+  })
   self:addChild(1, self.h, tk.Grid:new({
     window = self, rows = 1, columns = 3
   }):addChild(1, 3, tk.Button:new {
-    window = self, text = "OK", callback = function()
+    window = self, text = "OK", callback = function(self)
       self.window.root.removeWindow(self.window.windowid)
       self.closed = true
     end

@@ -87,12 +87,12 @@ window:addChild(1, 1, tk.TitleBar:new{
   text = "Menu"
 }):addChild(1, 2, grid)
 
-local ok, err = pcall(tk.ErrorDialog.new, tk.ErrorDialog, {
+local ok, err = pcall(tk.Dialog.new, tk.Dialog, {
   root = root,
   text = "Error!"
 })
 
-if err then
+if not ok and err then
   local win = tk.Window:new({root=root,w=#err,h=2})
   win:addChild(1,1,tk.TitleBar:new{window=win})
   win:addChild(1,2,tk.Text:new({window=win,text=err}))
@@ -105,7 +105,7 @@ while true do
     root.addWindow(window)
   end
   if sig == "thread_died" then
-    tk.ErrorDialog:new {
+    tk.Dialog:new {
       root = root,
       text = reason
     }
