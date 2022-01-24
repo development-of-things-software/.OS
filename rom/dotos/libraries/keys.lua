@@ -4,11 +4,17 @@ local dotos = require("dotos")
 
 -- automatic keymap detection :)
 local kmap = "lwjgl3"
-local mcver = tonumber(_HOST:match("%b()"):sub(2,-2):match("1%.(%d+)")) or 16
-if mcver <= 12 or _HOST:match("CraftOS%-PC") then
+local mcver = tonumber(_HOST:match("%b()"):sub(2,-2):match("1%.(%d+)")) or 0
+if _HOST:match("CCEmuX") then
+  -- use the 1.16.5 keymap
+  kmap = "lwjgl3"
+elseif mcver <= 12 or _HOST:match("CraftOS%-PC") then
   -- use the 1.12.2 keymap
   kmap = "lwjgl2"
 end
+
+dotos.log("using keymap " .. kmap)
+os.sleep(3)
 
 local base = dofile("/dotos/resources/keys/"..kmap..".lua")
 local lib = {}
