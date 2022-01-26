@@ -14,7 +14,6 @@ elseif mcver <= 12 or _HOST:match("CraftOS%-PC") then
 end
 
 dotos.log("using keymap " .. kmap)
-os.sleep(3)
 
 local base = dofile("/dotos/resources/keys/"..kmap..".lua")
 local lib = {}
