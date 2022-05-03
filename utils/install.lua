@@ -34,7 +34,7 @@ local function download(file)
   whand:close()
   downloaded = downloaded + 1
   term.setCursorPos(1, 1)
-  term.write("Downloading .OS (%d/%d)", downloaded, total)
+  term.write(string.format("Downloading .OS (%d/%d)", downloaded, total))
 end
 
 local files = {}
