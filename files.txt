@@ -83,6 +83,7 @@
 ./rom/dotos/libraries/dotsh.lua
 ./rom/dotos/libraries/colors.lua
 ./rom/dotos/libraries/dotwm.lua
+./rom/dotos/libraries/textutils.lua
 ./rom/dotos/libraries/splitters.lua
 ./rom/dotos/core/sha256.lua
 ./rom/dotos/core/scheduler.lua
