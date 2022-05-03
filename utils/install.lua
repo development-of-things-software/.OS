@@ -19,6 +19,7 @@ local total, downloaded = 0, 0
 
 term.clear()
 term.setCursorPos(1,1)
+term.write("Downloading .OS")
 local function download(file)
   -- strip /rom
   local ofile = file
@@ -33,8 +34,7 @@ local function download(file)
   whand:write(data)
   whand:close()
   downloaded = downloaded + 1
-  term.setCursorPos(1, 1)
-  term.write(string.format("Downloading .OS (%d/%d)", downloaded, total))
+  term.write(".")
 end
 
 local files = {}
