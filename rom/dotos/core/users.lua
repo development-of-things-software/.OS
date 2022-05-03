@@ -11,7 +11,8 @@ local ucfg = "/.users.cfg"
 
 local function ensure()
   if not fs.exists(ucfg) or not settings.get(ucfg, "admin") then
-    settings.set(ucfg, "admin", tostring(hash("admin")))
+    settings.set(ucfg, "admin", tostring(hash("admin")):gsub(".",
+      function(c)return ("%02x"):format(c:byte())end))
   end
 end
 
@@ -21,7 +22,8 @@ function lib.auth(name, pw)
   if not lib.exists(name) then
     return nil, "that user does not exist"
   end
-  return settings.get(ucfg, name) == tostring(hash(pw))
+  return settings.get(ucfg, name) == tostring(hash(pw)):gsub(".",
+      function(c)return ("%02x"):format(c:byte())end)
 end
 
 local threads = {}
