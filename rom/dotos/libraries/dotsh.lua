@@ -1,7 +1,6 @@
 -- .SH: a simple shell (library-ified) --
 
 local dotos = require("dotos")
-local textutils = require("textutils")
 local splitters = require("splitters")
 local settings = require("settings")
 local fs = require("fs")
