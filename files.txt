@@ -1,8 +1,3 @@
-./utils/mtarldr_head.lua
-./utils/genmtar.sh
-./utils/mtar.lua
-./utils/mtarldr_foot.lua
-./dotos.mtar.lua
 ./rom/init.lua
 ./rom/dotos/init.lua
 ./rom/dotos/resources/dotui/colors/Dark.lua
@@ -88,7 +83,6 @@
 ./rom/dotos/libraries/dotsh.lua
 ./rom/dotos/libraries/colors.lua
 ./rom/dotos/libraries/dotwm.lua
-./rom/dotos/libraries/textutils.lua
 ./rom/dotos/libraries/splitters.lua
 ./rom/dotos/core/sha256.lua
 ./rom/dotos/core/scheduler.lua
