@@ -1,7 +1,6 @@
 -- VT100 layer over top of a surface --
 
 local dotos = require("dotos")
-local textutils = require("textutils")
 local colors = require("colors")
 local keys = require("keys")
 
