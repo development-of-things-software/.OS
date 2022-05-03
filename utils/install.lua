@@ -34,7 +34,7 @@ local function download(file)
   whand:write(data)
   whand:close()
   downloaded = downloaded + 1
-  term.write(".")
+  write(".")
 end
 
 local files = {}
