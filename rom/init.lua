@@ -178,8 +178,7 @@ function checkArg(n, have, ...)
       aname = string.format("#%d", n)
     else
       aname = string.format("'%s'", n)
-:
-end
+    end
     error(debug.traceback(string.format("bad argument %s (expected %s, got %s)",
       aname, table.concat({...}, " or "), have), 3))
   end
